@@ -27,6 +27,7 @@ def add_nodes(G, str):
 
 
 def build_graphs_from_file(filename):
+    node_count = 0
     graphs = []
     with open(filename) as f:
         title = f.readline()
@@ -43,18 +44,22 @@ def build_graphs_from_file(filename):
             elif line[0] == 'e':
                 add_edges(g, line)
             elif line[0] == 'v':
+                node_count += 1
                 add_nodes(g, line)
             else:
                 raise Exception('Fail to load the graph from file ' + filename +
                                 ' please make sure that you respect the expected format')
         f.close()
     graphs.pop(0)
+    print("Mean size of graphs: " + str(node_count / len(graphs)))
     return graphs
 
 
 #tests
-'''
-graphs = build_graphs_from_file('../activ_ego/aids_5labels_egos.txt')
-print("Len of graphs : " + str(len(graphs)))
-for i in range(10):
-    tools.show_graph(graphs[i].nx_graph, title="Graph " + str(i))'''
+def my_test():
+    graphs = build_graphs_from_file('../activ_ego/aids_0labels_egos.txt')
+    print("Number of graphs : " + str(len(graphs)))
+    for i in range(10):
+        tools.show_graph(graphs[i].nx_graph, title="Graph " + str(i))
+
+my_test()
