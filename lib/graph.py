@@ -43,7 +43,7 @@ class Graph():
            Name of the graph because life without name has no meaning. 
     """
 
-    def __init__(self, nx_graph=None):
+    def __init__(self, nx_graph=None, cls = 0):
         if nx_graph is not None:
             self.nx_graph = nx.Graph(nx_graph)
         else:
@@ -55,6 +55,7 @@ class Graph():
         self.log['attridist'] = []
         self.C = None
         self.name_struct_dist = 'No struct name for now'
+        self.cls = cls
 
     def __eq__(self, other):
         return self.nx_graph == other.nx_graph

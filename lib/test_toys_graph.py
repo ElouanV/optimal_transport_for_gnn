@@ -101,9 +101,6 @@ def build_graphs():
     return graph1, graph2, graph3
 
 
-graph1, graph2, graph3 = build_graphs()
-
-
 ### DISTANCE ###
 def compare_distance(g1, g2):
     alpha = 0.5
@@ -116,7 +113,7 @@ def compare_distance(g1, g2):
           'Fused Gromov-Wasserstein distance for alpha {} = {}'.format(dw, dgw, alpha, dfgw))
 
 
-def print_distance():
+def print_distance(graph1, graph2, graph3):
     print('Distance g1, g2:')
     compare_distance(graph1, graph2)
 
@@ -160,8 +157,8 @@ def fill_compare_array(graphs, alpha=0.5):
     return w, gw, fgw
 
 
-def print_array(alpha=0.5):
-    w, gw, fgw = fill_compare_array([graph1, graph2, graph3], alpha)
+def print_array(graphs, alpha=0.5):
+    w, gw, fgw = fill_compare_array(graphs, alpha)
     print()
     print("### ARRAY ###")
     print()
@@ -173,11 +170,6 @@ def print_array(alpha=0.5):
     print()
     print("Fused Gromov Wasserstein")
     print(fgw)
-
-
-print_distance()
-print_array(0.5)
-print_array(0.1)
 
 
 # Evolution of FGW  with alpha
@@ -195,9 +187,6 @@ def alpha_evolution(g1, g2):
     plt.show()
 
 
-alpha_evolution(graph2, graph3)
-
-
 # Deeper understanding of comprision on grapĥ 3
 
 def see_couplings(g1, g2, alpha=0.8):
@@ -211,4 +200,16 @@ def see_couplings(g1, g2, alpha=0.8):
     plt.show()
 
 
-see_couplings(graph2,graph3)
+def test():
+    graph1, graph2, graph3 = build_graphs()
+    graphs = [graph1, graph2, graph3]
+    print_distance(graph1, graph2, graph3)
+    print_array(graphs, 0.5)
+    print_array(graphs, 0.1)
+    print_array(graphs, 0.9)
+    alpha_evolution(graph2, graph3)
+    alpha_evolution(graph1, graph1)
+    see_couplings(graph1, graph1, 0.5)
+    see_couplings(graph1, graph1, 0.8)
+
+#test()

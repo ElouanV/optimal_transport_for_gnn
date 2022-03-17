@@ -8,22 +8,24 @@ import time
 
 print("Start")
 start_time = time.time()
-filename = 'aids_0labels_egos.txt'
+filename = 'mutag_0labels_egos.txt'
 path_to_dir = "../activ_ego/"
 graphs = parse_active.build_graphs_from_file(path_to_dir + filename)
 print("Graphs created")
 
-plt.figure(figsize=(8, 10))
-for i in range(len(graphs)):
-    plt.subplot(3, 3, i + 1)
-    g = graphs[i]
-    pos = nx.kamada_kawai_layout(g.nx_graph)
-    nx.draw(g.nx_graph, pos=pos, node_color=graph_colors(g.nx_graph, vmin=-1, vmax=1), with_labels=False, node_size=100)
-    labels = nx.get_node_attributes(g.nx_graph, 'attr_name')
-    nx.draw_networkx_labels(g, pos, labels, font_size=16, font_color="whitesmoke")
 
-plt.suptitle('Dataset imported from ')
-plt.show()
+def display_data_set():
+    plt.figure(figsize=(8, 10))
+    for i in range(len(graphs)):
+        plt.subplot(3, 3, i + 1)
+        g = graphs[i]
+        pos = nx.kamada_kawai_layout(g.nx_graph)
+        nx.draw(g.nx_graph, pos=pos, node_color=graph_colors(g.nx_graph, vmin=-1, vmax=1), with_labels=False, node_size=100)
+        labels = nx.get_node_attributes(g.nx_graph, 'attr_name')
+        nx.draw_networkx_labels(g, pos, labels, font_size=16, font_color="whitesmoke")
+    plt.suptitle('Dataset imported from ')
+    plt.show()
+
 
 Cs = [g.distance_matrix(force_recompute=True, method='shortest_path') for g in graphs]
 ps = [np.ones(len(x.nodes())) / len(x.nodes()) for x in graphs]
@@ -31,7 +33,7 @@ Ys = [x.values() for x in graphs]
 lambdas = np.array([np.ones(len(Ys)) / len(Ys)]).ravel()
 
 # Choose the number of nodes in the barycenter
-sizebary = 2
+sizebary = 3
 init_X = np.repeat(sizebary, sizebary)
 
 D1, C1, log = fgw_barycenters(sizebary, Ys, Cs, ps, lambdas,
@@ -49,4 +51,5 @@ plt.suptitle('Barycenter from aids_14labels_egos.txt', fontsize=20)
 plt.show()
 end_time = time.time()
 print(" Took " + str(end_time - start_time))
+print(labels)
 print("finished")

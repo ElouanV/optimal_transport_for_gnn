@@ -39,8 +39,8 @@ def build_graphs_from_file(filename):
                 nb_graph = tokens[2]
                 if nb_graph == '-1':
                     break
-                g = Graph()
-                g.name = tokens[3]
+                g.name = tokens[3][2]
+
             elif line[0] == 'e':
                 add_edges(g, line)
             elif line[0] == 'v':
@@ -57,7 +57,7 @@ def build_graphs_from_file(filename):
 
 #tests
 def my_test():
-    graphs = build_graphs_from_file('../activ_ego/aids_0labels_egos.txt')
+    graphs = build_graphs_from_file('../activ_ego/aids_Olabels_egos.txt')
     print("Number of graphs : " + str(len(graphs)))
     for i in range(10):
         tools.show_graph(graphs[i].nx_graph, title="Graph " + str(i))
