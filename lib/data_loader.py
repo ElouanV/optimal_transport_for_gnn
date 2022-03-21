@@ -326,7 +326,7 @@ def build_MUTAG_dataset(path, one_hot=False):
     graphs = graph_label_list(path, 'MUTAG_graph_labels.txt')
     adjency = compute_adjency(path, 'MUTAG_A.txt')
     data_dict = graph_indicator(path, 'MUTAG_graph_indicator.txt')
-    node_dic = node_labels_dic(path, 'MUTAG_node_labels.txt')  # ya aussi des nodes attributes ! The fuck ?
+    node_dic = node_labels_dic(path, 'MUTAG_node_labels.txt')
     data = []
     for i in graphs:
         g = Graph()

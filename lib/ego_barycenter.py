@@ -6,6 +6,9 @@ from FGW import fgw_barycenters
 import parse_active
 import time
 
+mutag_barycenter_dir = "mutag_barycenter"
+path_to_data = "../activ_ego/"
+'''
 print("Start")
 start_time = time.time()
 filename = 'mutag_0labels_egos.txt'
@@ -20,7 +23,8 @@ def display_data_set():
         plt.subplot(3, 3, i + 1)
         g = graphs[i]
         pos = nx.kamada_kawai_layout(g.nx_graph)
-        nx.draw(g.nx_graph, pos=pos, node_color=graph_colors(g.nx_graph, vmin=-1, vmax=1), with_labels=False, node_size=100)
+        nx.draw(g.nx_graph, pos=pos, node_color=graph_colors(g.nx_graph, vmin=-1, vmax=1), with_labels=False,
+                node_size=100)
         labels = nx.get_node_attributes(g.nx_graph, 'attr_name')
         nx.draw_networkx_labels(g, pos, labels, font_size=16, font_color="whitesmoke")
     plt.suptitle('Dataset imported from ')
@@ -53,3 +57,35 @@ end_time = time.time()
 print(" Took " + str(end_time - start_time))
 print(labels)
 print("finished")
+'''
+
+
+def mutag_barycenter(file_prefix="mutag_", file_suffix="labels_egos.txt", nbfiles=60):
+    for i in range(nbfiles):
+        filename = path_to_data + file_prefix + str(i) + file_suffix
+        graphs, means = parse_active.build_graphs_from_file(filename)
+        print("File " + filename + " parsed ...")
+        for i in range(len(graphs)):
+            print("Computing class " + str(i) + " of file " + filename)
+            Cs = [g.distance_matrix(force_recompute=True, method='shortest_path') for g in graphs[i]]
+            ps = [np.ones(len(x.nodes())) / len(x.nodes()) for x in graphs[i]]
+            Ys = [x.values() for x in graphs[i]]
+            lambdas = np.array([np.ones(len(Ys)) / len(Ys)]).ravel()
+            sizebary = round(means[i])
+            init_X = np.repeat(sizebary, sizebary)
+            D1, C1, log = fgw_barycenters(sizebary, Ys, Cs, ps, lambdas, alpha=0.95, init_X=init_X)
+            bary = nx.from_numpy_array(sp_to_adjency(C1, threshinf=0, threshsup=find_thresh(C1, sup=100, step=100)[0]))
+            for i in range(len(D1)):
+                bary.add_node(i, attr_name=float(D1[i]))
+            pos = nx.kamada_kawai_layout(bary)
+            nx.draw(bary, pos=pos, node_color=graph_colors(bary, vmin=-1, vmax=1), with_labels=False)
+            labels = nx.get_node_attributes(bary, 'attr_name')
+            nx.draw_networkx_labels(bary, pos, labels, font_size=16, font_color="whitesmoke")
+            plt.suptitle('Barycenter from aids_14labels_egos.txt', fontsize=20)
+            plt.savefig(mutag_barycenter_dir + "activation_rules" + str(i))
+            plt.show()
+
+
+
+mutag_barycenter()
+mutag_barycenter(nbfiles=1)

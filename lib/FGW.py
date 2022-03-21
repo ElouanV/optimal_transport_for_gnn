@@ -3,15 +3,17 @@
 import numpy as np
 import ot
 import optim
-from utils import dist,reshaper
+from utils import dist, reshaper
 from bregman import sinkhorn_scaling
 from scipy import stats
 from scipy.sparse import random
 
+
 class StopError(Exception):
     pass
 
-def init_matrix(C1,C2,p,q,loss_fun='square_loss'):
+
+def init_matrix(C1, C2, p, q, loss_fun='square_loss'):
     """ Return loss matrices and tensors for Gromov-Wasserstein fast computation
     Returns the value of \mathcal{L}(C1,C2) \otimes T with the selected loss
     function as the loss function of Gromow-Wasserstein discrepancy.
@@ -49,32 +51,32 @@ def init_matrix(C1,C2,p,q,loss_fun='square_loss'):
     "Gromov-Wasserstein averaging of kernel and distance matrices."
     International Conference on Machine Learning (ICML). 2016.
     """
-            
+
     if loss_fun == 'square_loss':
         def f1(a):
-            return a**2 
+            return a ** 2
 
         def f2(b):
-            return b**2
+            return b ** 2
 
         def h1(a):
             return a
 
         def h2(b):
-            return 2*b
+            return 2 * b
 
     constC1 = np.dot(np.dot(f1(C1), p.reshape(-1, 1)),
                      np.ones(len(q)).reshape(1, -1))
     constC2 = np.dot(np.ones(len(p)).reshape(-1, 1),
                      np.dot(q.reshape(1, -1), f2(C2).T))
-    constC=constC1+constC2
+    constC = constC1 + constC2
     hC1 = h1(C1)
     hC2 = h2(C2)
 
-    return constC,hC1,hC2
+    return constC, hC1, hC2
 
-def tensor_product(constC,hC1,hC2,T):
 
+def tensor_product(constC, hC1, hC2, T):
     """ Return the tensor for Gromov-Wasserstein fast computation
     The tensor is computed as described in Proposition 1 Eq. (6) in [1].
     Parameters
@@ -95,14 +97,14 @@ def tensor_product(constC,hC1,hC2,T):
     "Gromov-Wasserstein averaging of kernel and distance matrices."
     International Conference on Machine Learning (ICML). 2016.
     """
-    
-    A=-np.dot(hC1, T).dot(hC2.T)
-    tens = constC+A
+
+    A = -np.dot(hC1, T).dot(hC2.T)
+    tens = constC + A
 
     return tens
 
-def gwloss(constC,hC1,hC2,T):
 
+def gwloss(constC, hC1, hC2, T):
     """ Return the Loss for Gromov-Wasserstein
     The loss is computed as described in Proposition 1 Eq. (6) in [1].
     Parameters
@@ -126,13 +128,12 @@ def gwloss(constC,hC1,hC2,T):
     International Conference on Machine Learning (ICML). 2016.
     """
 
-    tens=tensor_product(constC,hC1,hC2,T) 
-              
-    return np.sum(tens*T) 
+    tens = tensor_product(constC, hC1, hC2, T)
+
+    return np.sum(tens * T)
 
 
-def gwggrad(constC,hC1,hC2,T):
-    
+def gwggrad(constC, hC1, hC2, T):
     """ Return the gradient for Gromov-Wasserstein
     The gradient is computed as described in Proposition 2 in [1].
     Parameters
@@ -155,11 +156,11 @@ def gwggrad(constC,hC1,hC2,T):
     "Gromov-Wasserstein averaging of kernel and distance matrices."
     International Conference on Machine Learning (ICML). 2016.
     """
-          
-    return 2*tensor_product(constC,hC1,hC2,T) 
 
-def gw_lp(C1,C2,p,q,loss_fun='square_loss',alpha=1,amijo=True,**kwargs): 
+    return 2 * tensor_product(constC, hC1, hC2, T)
 
+
+def gw_lp(C1, C2, p, q, loss_fun='square_loss', alpha=1, amijo=True, **kwargs):
     """
     Returns the gromov-wasserstein transport between (C1,p) and (C2,q)
     The function solves the following optimization problem:
@@ -214,19 +215,21 @@ def gw_lp(C1,C2,p,q,loss_fun='square_loss',alpha=1,amijo=True,**kwargs):
         mathematics 11.4 (2011): 417-487.
     """
 
-    constC,hC1,hC2=init_matrix(C1,C2,p,q,loss_fun)
-    M=np.zeros((C1.shape[0],C2.shape[0]))
-    
-    G0=p[:,None]*q[None,:]
-    
+    constC, hC1, hC2 = init_matrix(C1, C2, p, q, loss_fun)
+    M = np.zeros((C1.shape[0], C2.shape[0]))
+
+    G0 = p[:, None] * q[None, :]
+
     def f(G):
-        return gwloss(constC,hC1,hC2,G)
+        return gwloss(constC, hC1, hC2, G)
+
     def df(G):
-        return gwggrad(constC,hC1,hC2,G)
- 
-    return optim.cg(p,q,M,alpha,f,df,G0,amijo=amijo,constC=constC,C1=C1,C2=C2,**kwargs)
-    
-def fgw_lp(M,C1,C2,p,q,loss_fun='square_loss',alpha=1,amijo=True,G0=None,**kwargs): 
+        return gwggrad(constC, hC1, hC2, G)
+
+    return optim.cg(p, q, M, alpha, f, df, G0, amijo=amijo, constC=constC, C1=C1, C2=C2, **kwargs)
+
+
+def fgw_lp(M, C1, C2, p, q, loss_fun='square_loss', alpha=1, amijo=True, G0=None, **kwargs):
     """
     Computes the FGW distance between two graphs see [3]
     .. math::
@@ -280,18 +283,18 @@ def fgw_lp(M,C1,C2,p,q,loss_fun='square_loss',alpha=1,amijo=True,G0=None,**kwarg
         International Conference on Machine Learning (ICML). 2019.
     """
 
-    constC,hC1,hC2=init_matrix(C1,C2,p,q,loss_fun)
-    
-    if G0 is None:
-        G0=p[:,None]*q[None,:]
-    
-    def f(G):
-        return gwloss(constC,hC1,hC2,G)
-    def df(G):
-        return gwggrad(constC,hC1,hC2,G)
- 
-    return optim.cg(p,q,M,alpha,f,df,G0,amijo=amijo,C1=C1,C2=C2,constC=constC,**kwargs)
+    constC, hC1, hC2 = init_matrix(C1, C2, p, q, loss_fun)
 
+    if G0 is None:
+        G0 = p[:, None] * q[None, :]
+
+    def f(G):
+        return gwloss(constC, hC1, hC2, G)
+
+    def df(G):
+        return gwggrad(constC, hC1, hC2, G)
+
+    return optim.cg(p, q, M, alpha, f, df, G0, amijo=amijo, C1=C1, C2=C2, constC=constC, **kwargs)
 
 
 def update_square_loss(p, lambdas, T, Cs):
@@ -319,8 +322,7 @@ def update_square_loss(p, lambdas, T, Cs):
     return np.divide(tmpsum, ppt)
 
 
-def update_cross_feature_matrix(X,Y):
-
+def update_cross_feature_matrix(X, Y):
     """
     Updates M the distance matrix between the features
     calculated at each iteration    
@@ -335,23 +337,22 @@ def update_cross_feature_matrix(X,Y):
     
     """
 
-    return ot.dist(reshaper(np.array(X)),reshaper(np.array(Y)))
+    return ot.dist(reshaper(np.array(X)), reshaper(np.array(Y)))
 
-def update_Ms(X,Ys):
 
-    l=[np.asarray(update_cross_feature_matrix(X,Ys[s]), dtype=np.float64) for s in range(len(Ys))]
+def update_Ms(X, Ys):
+    l = [np.asarray(update_cross_feature_matrix(X, Ys[s]), dtype=np.float64) for s in range(len(Ys))]
 
     return l
 
 
-def random_gamma_init(p,q, **kwargs):
-    rvs=stats.beta(1e-1,1e-1).rvs
-    S=random(len(p), len(q), density=1, data_rvs=rvs)
-    return sinkhorn_scaling(p,q,S.A, **kwargs)
+def random_gamma_init(p, q, **kwargs):
+    rvs = stats.beta(1e-1, 1e-1).rvs
+    S = random(len(p), len(q), density=1, data_rvs=rvs)
+    return sinkhorn_scaling(p, q, S.A, **kwargs)
 
 
-def update_feature_matrix(lambdas,Ys,Ts,p):
-    
+def update_feature_matrix(lambdas, Ys, Ts, p):
     """
     Updates the feature with respect to the S Ts couplings. See "Solving the barycenter problem with Block Coordinate Descent (BCD)" in [3]
     calculated at each iteration
@@ -377,15 +378,16 @@ def update_feature_matrix(lambdas,Ys,Ts,p):
         International Conference on Machine Learning (ICML). 2019.
     """
 
-    p=np.diag(np.array(1/p).reshape(-1,))
+    p = np.diag(np.array(1 / p).reshape(-1, ))
 
-    tmpsum = sum([lambdas[s] * np.dot(Ys[s],Ts[s].T).dot(p) for s in range(len(Ts))])
+    tmpsum = sum([lambdas[s] * np.dot(Ys[s], Ts[s].T).dot(p) for s in range(len(Ts))])
 
     return tmpsum
 
-def fgw_barycenters(N,Ys,Cs,ps,lambdas,alpha,fixed_structure=False,fixed_features=False,p=None,loss_fun='square_loss',
-                    max_iter=100, tol=1e-9,verbose=False,log=True,init_C=None,init_X=None):
- 
+
+def fgw_barycenters(N, Ys, Cs, ps, lambdas, alpha, fixed_structure=False, fixed_features=False, p=None,
+                    loss_fun='square_loss',
+                    max_iter=100, tol=1e-9, verbose=False, log=True, init_C=None, init_X=None):
     """
     Compute the fgw barycenter as presented eq (5) in [3].
     ----------
@@ -427,9 +429,9 @@ def fgw_barycenters(N,Ys,Cs,ps,lambdas,alpha,fixed_structure=False,fixed_feature
     """
     np.random.seed(2)
     S = len(Cs)
-    d= reshaper(Ys[0]).shape[1] #dimension on the node features
+    d = reshaper(Ys[0]).shape[1]  # dimension on the node features
     if p is None:
-        p=np.ones(N)/N
+        p = np.ones(N) / N
 
     Cs = [np.asarray(Cs[s], dtype=np.float64) for s in range(S)]
     Ys = [np.asarray(Ys[s], dtype=np.float64) for s in range(S)]
@@ -438,9 +440,9 @@ def fgw_barycenters(N,Ys,Cs,ps,lambdas,alpha,fixed_structure=False,fixed_feature
 
     if fixed_structure:
         if init_C is None:
-            C=Cs[0]
+            C = Cs[0]
         else:
-            C=init_C
+            C = init_C
     else:
         if init_C is None:
             xalea = np.random.randn(N, 2)
@@ -451,21 +453,21 @@ def fgw_barycenters(N,Ys,Cs,ps,lambdas,alpha,fixed_structure=False,fixed_feature
 
     if fixed_features:
         if init_X is None:
-            X=Ys[0]
-        else :
-            X= init_X
+            X = Ys[0]
+        else:
+            X = init_X
     else:
-        if init_X is None: 
-            X=np.zeros((N,d))
+        if init_X is None:
+            X = np.zeros((N, d))
         else:
             X = init_X
 
-    #T=[np.outer(p,q) for q in ps]
-    T=[random_gamma_init(p,q) for q in ps]
+    # T=[np.outer(p,q) for q in ps]
+    T = [random_gamma_init(p, q) for q in ps]
 
     # X is N,d
     # Ys is ns,d
-    Ms = update_Ms(X,Ys)
+    Ms = update_Ms(X, Ys)
     # Ms is N,ns
 
     cpt = 0
@@ -473,29 +475,29 @@ def fgw_barycenters(N,Ys,Cs,ps,lambdas,alpha,fixed_structure=False,fixed_feature
     err_structure = 1
 
     if log:
-        log_={}
-        log_['err_feature']=[]
-        log_['err_structure']=[]
-        log_['Ts_iter']=[]
+        log_ = {}
+        log_['err_feature'] = []
+        log_['err_structure'] = []
+        log_['Ts_iter'] = []
 
-    while((err_feature > tol or err_structure > tol) and cpt < max_iter):
+    while ((err_feature > tol or err_structure > tol) and cpt < max_iter):
         Cprev = C
         Xprev = X
 
         if not fixed_features:
-            Ys_temp=[reshaper(y).T for y in Ys] 
-            X=update_feature_matrix(lambdas,Ys_temp,T,p)
+            Ys_temp = [reshaper(y).T for y in Ys]
+            X = update_feature_matrix(lambdas, Ys_temp, T, p)
 
         # X must be N,d
         # Ys must be ns,d
-        Ms=update_Ms(X.T,Ys)
+        Ms = update_Ms(X.T, Ys)
 
         if not fixed_structure:
             if loss_fun == 'square_loss':
                 # T must be ns,N
                 # Cs must be ns,ns
                 # p must be N,1
-                T_temp=[t.T for t in T]
+                T_temp = [t.T for t in T]
                 C = update_square_loss(p, lambdas, T_temp, Cs)
 
         # Ys must be d,ns
@@ -507,12 +509,13 @@ def fgw_barycenters(N,Ys,Cs,ps,lambdas,alpha,fixed_structure=False,fixed_feature
         # p is N,1
         # ps is ns,1
 
-        T = [fgw_lp((1-alpha)*Ms[s],C,Cs[s],p,ps[s],loss_fun,alpha,numItermax=max_iter, stopThr=1e-5, verbose=verbose) for s in range(S)]
+        T = [fgw_lp((1 - alpha) * Ms[s], C, Cs[s], p, ps[s], loss_fun, alpha, numItermax=max_iter, stopThr=1e-5,
+                    verbose=verbose) for s in range(S)]
 
-            # T is N,ns
+        # T is N,ns
 
         log_['Ts_iter'].append(T)
-        err_feature = np.linalg.norm(X - Xprev.reshape(d,N))
+        err_feature = np.linalg.norm(X - Xprev.reshape(d, N))
         err_structure = np.linalg.norm(C - Cprev)
 
         if log:
@@ -527,8 +530,8 @@ def fgw_barycenters(N,Ys,Cs,ps,lambdas,alpha,fixed_structure=False,fixed_feature
             print('{:5d}|{:8e}|'.format(cpt, err_feature))
 
         cpt += 1
-    log_['T']=T # ce sont les matrices du barycentre de la target vers les Ys
-    log_['p']=p
-    log_['Ms']=Ms #Ms sont de tailles N,ns
+    log_['T'] = T  # ce sont les matrices du barycentre de la target vers les Ys
+    log_['p'] = p
+    log_['Ms'] = Ms  # Ms sont de tailles N,ns
 
-    return X.T,C,log_
+    return X.T, C, log_
