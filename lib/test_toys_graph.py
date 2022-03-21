@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 from graph import graph_colors, draw_rel, draw_transp, Graph, wl_labeling
 from ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
 import numpy as np
+from data_loader import load_local_data
 
 
-def show_graph(G, layout='random', title='Graph', labeled=False, attr_name='attr_name'):
+def show_graph(G, layout='random', title='Graph', labeled=False, attr_name='attr_name',save=False):
     if layout == 'random':
         pos = nx.random_layout(G)
     if layout == 'shell':
@@ -23,7 +24,8 @@ def show_graph(G, layout='random', title='Graph', labeled=False, attr_name='attr
     nx.draw_networkx_labels(G, pos, labels, font_size=16, font_color="whitesmoke")
 
     plt.title(title)
-    plt.savefig('./mytests/' + title)
+    if save:
+        plt.savefig('./mytests/' + title)
     plt.show()
 
 
@@ -90,6 +92,25 @@ def build_g3():
     g.add_edge((5, 6))
     return g
 
+def build_g4():
+    g = Graph()
+    g.add_attributes({0: 0, 1: 0, 2: 0, 3: 0, 4: 1, 5: 0, 6: 1, 7: 1})
+
+    g.add_edge((0, 1))
+    g.add_edge((0, 2))
+    g.add_edge((0, 3))
+    g.add_edge((0, 5))
+    g.add_edge((1, 2))
+    g.add_edge((1, 3))
+    g.add_edge((1, 5))
+    g.add_edge((2, 3))
+    g.add_edge((2, 7))
+    g.add_edge((3, 4))
+    g.add_edge((5, 6))
+    g.add_edge((5, 3))
+    g.add_edge((5, 2))
+    return g
+
 
 def build_graphs():
     graph1 = build_g1()
@@ -98,6 +119,8 @@ def build_graphs():
     show_graph(graph2.nx_graph, 'spring', title="Graph2")
     graph3 = build_g3()
     show_graph(graph3.nx_graph, 'spring', title="Graph3")
+    graph4 = build_g4()
+    show_graph(graph4.nx_graph, 'spring', title="Graph4")
     return graph1, graph2, graph3
 
 
@@ -212,6 +235,16 @@ def test():
     see_couplings(graph1, graph1, 0.5)
     see_couplings(graph1, graph1, 0.8)
 
+
 #test()
 
 
+def test_data_loader():
+    dataset_n = 'mutag'
+    path = '../data/'
+    X, y = load_local_data(path, dataset_n, wl=2)
+    for i in range(5):
+        print("graph " + str(i))
+        show_graph(X[i].nx_graph, title='test dataloader', labeled=True)
+    print(":)")
+#test_data_loader()

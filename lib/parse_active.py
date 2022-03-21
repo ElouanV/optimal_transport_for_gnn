@@ -90,10 +90,11 @@ def my_test():
         for i in range(5):
             tools.show_graph(graphs[c][i].nx_graph, title="Graph " + str(i) + " of class: " + str(c))
 
-
+'''
 graphs,_ = build_graphs_from_file("../activ_ego/mutag_Olabels_egos.txt")
 
 fgw= Fused_Gromov_Wasserstein_distance(alpha=0.5, features_metric='dirac', method='shortest_path')
 dfgw = fgw.graph_d(graphs[0][0], graphs[0][1])
 print(dfgw)
+'''
 #my_test()
