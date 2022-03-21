@@ -65,6 +65,12 @@ def init_matrix(C1, C2, p, q, loss_fun='square_loss'):
         def h2(b):
             return 2 * b
 
+    C1s = f1(C1)
+
+    p2 = p.reshape(-1, 1)
+    one = np.ones(len(q)).reshape(1, -1)
+    one2 = np.ones(len(p)).reshape(-1, 1)
+    q2 = q.reshape(1, -1)
     constC1 = np.dot(np.dot(f1(C1), p.reshape(-1, 1)),
                      np.ones(len(q)).reshape(1, -1))
     constC2 = np.dot(np.ones(len(p)).reshape(-1, 1),
@@ -403,6 +409,7 @@ def fgw_barycenters(N, Ys, Cs, ps, lambdas, alpha, fixed_structure=False, fixed_
               list of the S spaces' weights
     alpha : float
             Alpha parameter for the fgw distance
+
     fixed_structure :  bool
                        Wether to fix the structure of the barycenter during the updates
     fixed_features :  bool
