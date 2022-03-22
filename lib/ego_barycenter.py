@@ -110,8 +110,8 @@ def compute_barycenter(graphs, mean, show=False, rule="0", save=False, cls=0):
         plt.show()
 
 
-def mutag_barycenter(file_prefix="mutag_", file_suffix="labels_egos.txt", nbfiles=60):
-    for i in range(nbfiles):
+def mutag_barycenter(file_prefix="mutag_", file_suffix="labels_egos.txt", start=0, end=60):
+    for i in range(start,end):
         start_time = time.time()
         filename = path_to_data + file_prefix + str(i) + file_suffix
         graphs, means = parse_active.build_graphs_from_file(filename)
