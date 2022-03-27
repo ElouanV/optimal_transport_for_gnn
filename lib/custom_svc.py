@@ -3,7 +3,7 @@
 from sklearn.svm import SVC
 import numpy as np
 from sklearn.base import TransformerMixin
-from ot_distances import Fused_Gromov_Wasserstein_distance
+from lib.ot_distances import Fused_Gromov_Wasserstein_distance
 import time
 from optim import NonConvergenceError
 from sklearn.exceptions import NotFittedError

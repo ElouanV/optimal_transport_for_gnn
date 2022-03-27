@@ -1,9 +1,11 @@
+import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
-from graph import graph_colors, draw_rel, draw_transp, Graph, wl_labeling
-from ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
-import numpy as np
-from data_loader import load_local_data
+import os, sys
+sys.path.append(os.path.relpath('../lib'))
+from lib.graph import draw_transp, Graph
+from lib.ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
+from lib.data_loader import load_local_data
 
 
 def show_graph(G, layout='random', title='Graph', labeled=False, attr_name='attr_name',save=False):

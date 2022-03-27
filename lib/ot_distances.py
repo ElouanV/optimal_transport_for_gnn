@@ -166,6 +166,7 @@ class Fused_Gromov_Wasserstein_distance():
             M = np.zeros((C1.shape[0], C2.shape[0]))
 
         startdist = time.time()
+
         transpwgw, log = self.calc_fgw(M, C1, C2, t1masses, t2masses)
         enddist = time.time()
 
