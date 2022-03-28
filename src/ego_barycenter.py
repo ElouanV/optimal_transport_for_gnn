@@ -79,39 +79,19 @@ def compute_barycenter(graphs, mean, show=False, rule="0", save=False, cls=0, al
     for i in range(len(D1)):
         bary.add_node(i, attr_name=float(D1[i]))
     if show or save:
+        path_to_save = "./mutag_barycenter/"
         name = "barycenter_r" + rule + "_c" + str(cls) + "_a" + str(int(alpha * 100)) + "_s" + str(mean)
         title = "barycenter_r" + rule + "_c" + str(cls) + "\n Alpha: " + str(alpha) + " size: " + str(mean)
-        pos = nx.kamada_kawai_layout(bary)
-        nx.draw(bary, pos=pos, node_color=graph_colors(bary, vmin=-1, vmax=1), with_labels=False)
-        labels = nx.get_node_attributes(bary, 'attr_name')
-        nx.draw_networkx_labels(bary, pos, labels, font_size=16, font_color="whitesmoke")
-        plt.suptitle(title, fontsize=20)
-        if save:
-            plt.savefig("./mutag_barycenter/" + name)
-        plt.show()
+        tools.show_graph(bary, title=title, save=save, layout="kamada_kawai", name=name, path=path_to_save)
 
         ## With label rounded:
         round_bary = relabel_graph(bary)
-        pos = nx.kamada_kawai_layout(round_bary)
-        nx.draw(round_bary, pos=pos, with_labels=False)
-        labels = nx.get_node_attributes(round_bary, 'attr_name')
-        nx.draw_networkx_labels(round_bary, pos, labels, font_size=16, font_color="whitesmoke")
-        plt.suptitle(title + "rounded", fontsize=20)
-        if save:
-            plt.savefig("./mutag_barycenter/" + name + "rounded")
-        plt.show()
+        tools.show_graph(round_bary, title=title, save=save, layout="kamada_kawai", name=name, path=path_to_save)
 
         ## With mutag label:
         mutag_bary = relabel_graph_to_mutag(round_bary)
-        pos = nx.kamada_kawai_layout(mutag_bary)
-        nx.draw(mutag_bary, pos=pos, with_labels=False)
-        labels = nx.get_node_attributes(mutag_bary, 'attr_name')
-        nx.draw_networkx_labels(mutag_bary, pos, labels, font_size=16, font_color="whitesmoke")
-        plt.suptitle(title + "mutag", fontsize=20)
-        if save:
-            plt.savefig("./mutag_barycenter/" + name + "mutag")
+        tools.show_graph(mutag_bary, title=title, save=save, layout="kamada_kawai", name=name, path=path_to_save)
 
-        plt.show()
 
 
 def mutag_barycenter(file_prefix="mutag_", file_suffix="labels_egos.txt", start=0, end=60):
@@ -140,7 +120,7 @@ def compute_all_mutag_barycenter():
     print("Finished")
 
 
-# compute_barycenter([toys.build_g1(), toys.build_g2(), toys.build_g4()], 6,show=False, rule='', )
+# compute_barycenter([tools.build_g1(), tools.build_g2(), tools.build_g4()], 10,show=True, rule='', save=True)
 
 def barycenter_vary_n(rule="23"):
     '''
@@ -153,12 +133,12 @@ def barycenter_vary_n(rule="23"):
     print("Number of graphs class 0: " + str(len(graphs[0])))
     print("Number of graphs class 1: " + str(len(graphs[1])))
     for i in range(len(means)):
-        for j in range(2, round(round(means[i]) * 1.5)):
+        for j in range(2, round(round(means[i]) * 1.5) + 1):
             print("Computing rules " + str(rule) + " class " + str(i) + " size " + str(j))
-            compute_barycenter(graphs[1], mean=j, cls=1, show=True, rule=rule, save=True)
+            compute_barycenter(graphs[i], mean=j, cls=i, show=True, rule=rule, save=True)
 
 
-# barycenter_vary_n()
+# barycenter_vary_n(rule="28")
 
 
 def barycenter_vary_alpha(rule="23"):
@@ -208,39 +188,19 @@ def compute_barycenter_suffle(graphs, mean, show=False, rule="0", save=False, cl
     for i in range(len(D1)):
         bary.add_node(i, attr_name=float(D1[i]))
     if show or save:
+        path_to_save = "./mutag_barycenter/"
         name = "shufflebarycenter_r" + rule + "_c" + str(cls) + "_a" + str(int(alpha * 100)) + "_s" + str(mean)
         title = "shufflebarycenter_r" + rule + "_c" + str(cls) + "\n Alpha: " + str(alpha) + " size: " + str(mean)
-        pos = nx.kamada_kawai_layout(bary)
-        nx.draw(bary, pos=pos, node_color=graph_colors(bary, vmin=-1, vmax=1), with_labels=False)
-        labels = nx.get_node_attributes(bary, 'attr_name')
-        nx.draw_networkx_labels(bary, pos, labels, font_size=16, font_color="whitesmoke")
-        plt.suptitle(title, fontsize=20)
-        if save:
-            plt.savefig("./mutag_barycenter/" + name)
-        plt.show()
+        tools.show_graph(bary, title=title, save=save, layout="kamada_kawai", name=name, path=path_to_save)
+
 
         ## With label rounded:
         round_bary = relabel_graph(bary)
-        pos = nx.kamada_kawai_layout(round_bary)
-        nx.draw(round_bary, pos=pos, with_labels=False)
-        labels = nx.get_node_attributes(round_bary, 'attr_name')
-        nx.draw_networkx_labels(round_bary, pos, labels, font_size=16, font_color="whitesmoke")
-        plt.suptitle(title + "rounded", fontsize=20)
-        if save:
-            plt.savefig("./mutag_barycenter/" + name + "rounded")
-        plt.show()
+        tools.show_graph(round_bary, title=title, save=save, layout="kamada_kawai", name=name, path=path_to_save)
 
         ## With mutag label:
         mutag_bary = relabel_graph_to_mutag(round_bary, mutag_labels_shuffled)
-        pos = nx.kamada_kawai_layout(mutag_bary)
-        nx.draw(mutag_bary, pos=pos, with_labels=False)
-        labels = nx.get_node_attributes(mutag_bary, 'attr_name')
-        nx.draw_networkx_labels(mutag_bary, pos, labels, font_size=16, font_color="whitesmoke")
-        plt.suptitle(title + "mutag", fontsize=20)
-        if save:
-            plt.savefig("./mutag_barycenter/" + name + "mutag")
-
-        plt.show()
+        tools.show_graph(mutag_bary, title=title, save=save, layout="kamada_kawai", name=name, path=path_to_save)
 
 
 def barycenter_shuffle_labels(rule="23"):
@@ -250,17 +210,16 @@ def barycenter_shuffle_labels(rule="23"):
     :param rule: the rule number to compute
     :return:
     '''
-    graphs_shuffle, means = parse_active.build_graphs_from_file_shuffle(path_to_data + "mutag_" + rule + "labels_egos.txt")
+    graphs_shuffle, means = parse_active.build_graphs_from_file_shuffle(
+        path_to_data + "mutag_" + rule + "labels_egos.txt")
     print("Number of graphs class 0: " + str(len(graphs_shuffle[0])))
     print("Number of graphs class 1: " + str(len(graphs_shuffle[1])))
     graphs, means = parse_active.build_graphs_from_file(path_to_data + "mutag_" + rule + "labels_egos.txt")
-    compute_barycenter(graphs[0], 5, cls=0, show=True, rule=rule, alpha=0.95, save=True)
-    compute_barycenter_suffle(graphs_shuffle[0], 5, cls=0, show=True, rule=rule, alpha=0.95, save=True)
+    compute_barycenter(graphs[0], 4, cls=0, show=True, rule=rule, alpha=0.95, save=True)
+    compute_barycenter_suffle(graphs_shuffle[0], 4, cls=0, show=True, rule=rule, alpha=0.95, save=True)
 
 
-barycenter_shuffle_labels()
-
-
+# barycenter_shuffle_labels(rule="28")
 
 
 def test_shuffle():
@@ -276,3 +235,11 @@ def test_shuffle():
                              title="Shuffle Graph " + str(graph) + " of class: " + str(cls))
     print()
 
+
+def test_count_label(rule="28"):
+    graphs, _ = parse_active.build_graphs_from_file_count_labels("../activ_ego/mutag_" + rule + "labels_egos.txt",
+                                                                 labels_list=parse_active.mutag_labels)
+    graphs_shuffle, _ = parse_active.build_graphs_from_file_count_labels(
+        "../activ_ego/mutag_" + rule + "labels_egos.txt", labels_list=mutag_labels_shuffled, shuffle=True)
+
+# test_count_label(rule="28")

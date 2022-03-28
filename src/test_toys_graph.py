@@ -2,13 +2,15 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import os, sys
+
 sys.path.append(os.path.relpath('../lib'))
 from lib.graph import draw_transp, Graph
 from lib.ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
 from lib.data_loader import load_local_data
 
 
-def show_graph(G, layout='random', title='Graph', labeled=False, attr_name='attr_name',save=False):
+def show_graph(G, name="graphs", layout='random', title='Graph', labeled=False, attr_name='attr_name', save=False,
+               path="./"):
     if layout == 'random':
         pos = nx.random_layout(G)
     if layout == 'shell':
@@ -20,14 +22,14 @@ def show_graph(G, layout='random', title='Graph', labeled=False, attr_name='attr
     if layout == 'kamada_kawai':
         pos = nx.kamada_kawai_layout(G)
     nx.draw_networkx(G, pos, with_labels=False, font_weight='bold')
-    labels = nx.get_edge_attributes(G, 'weight')
+    labels = nx.get_edge_attributes(G, 'attr_name')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
     labels = nx.get_node_attributes(G, attr_name)
     nx.draw_networkx_labels(G, pos, labels, font_size=16, font_color="whitesmoke")
 
     plt.title(title)
     if save:
-        plt.savefig('./mytests/' + title)
+        plt.savefig(path + name)
     plt.show()
 
 
@@ -46,6 +48,7 @@ def build_g1():
     g.add_edge((2, 1))
     g.add_edge((2, 3))
     g.add_edge((4, 3))
+    show_graph(g.nx_graph, 'spring', title="Graph1", save=True)
     return g
 
 
@@ -65,6 +68,7 @@ def build_g2():
     g.add_edge((1, 3))
     g.add_edge((2, 3))
     g.add_edge((4, 3))
+    show_graph(g.nx_graph, 'spring', title="Graph2", save=True)
     return g
 
 
@@ -92,7 +96,9 @@ def build_g3():
     g.add_edge((2, 7))
     g.add_edge((3, 4))
     g.add_edge((5, 6))
+    show_graph(g.nx_graph, 'spring', title="Graph3", save=True)
     return g
+
 
 def build_g4():
     g = Graph()
@@ -111,6 +117,7 @@ def build_g4():
     g.add_edge((5, 6))
     g.add_edge((5, 3))
     g.add_edge((5, 2))
+    show_graph(g.nx_graph, 'spring', title="Graph4", save=True)
     return g
 
 
@@ -123,7 +130,7 @@ def build_graphs():
     show_graph(graph3.nx_graph, 'spring', title="Graph3")
     graph4 = build_g4()
     show_graph(graph4.nx_graph, 'spring', title="Graph4")
-    return graph1, graph2, graph3
+    return graph1, graph2, graph4
 
 
 ### DISTANCE ###
@@ -238,7 +245,7 @@ def test():
     see_couplings(graph1, graph1, 0.8)
 
 
-#test()
+# test()
 
 
 def test_data_loader():
@@ -249,4 +256,4 @@ def test_data_loader():
         print("graph " + str(i))
         show_graph(X[i].nx_graph, title='test dataloader', labeled=True)
     print(":)")
-#test_data_loader()
+# test_data_loader()
