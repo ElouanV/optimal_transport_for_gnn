@@ -43,7 +43,7 @@ class Graph():
            Name of the graph because life without name has no meaning. 
     """
 
-    def __init__(self, nx_graph=None, cls = 0):
+    def __init__(self, nx_graph=None, cls=0):
         if nx_graph is not None:
             self.nx_graph = nx.Graph(nx_graph)
         else:

@@ -66,7 +66,7 @@ def compute_barycenter(graphs, mean, show=False, rule="0", save=False, cls=0, al
     :param save: save or note the plot of the barycenter
     :param cls: class of the graphs
     :param alpha: threshold for the barycenter
-    :return:
+    :return: the barycenter of the graphs
     '''
     Cs = [g.distance_matrix(force_recompute=True, method='shortest_path') for g in graphs]
     ps = [np.ones(len(x.nodes())) / len(x.nodes()) for x in graphs]
@@ -91,7 +91,7 @@ def compute_barycenter(graphs, mean, show=False, rule="0", save=False, cls=0, al
         ## With mutag label:
         mutag_bary = relabel_graph_to_mutag(round_bary)
         tools.show_graph(mutag_bary, title=title, save=save, layout="kamada_kawai", name=name, path=path_to_save)
-
+    return bary
 
 
 def mutag_barycenter(file_prefix="mutag_", file_suffix="labels_egos.txt", start=0, end=60):
