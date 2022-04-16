@@ -66,15 +66,14 @@ def find_random_graph(graphs, proba):
     choice = random.choices(index_list, weights=proba)
     return choice[0]
 
-
-def find_random_graph(graphs, proba):
-    rnd = random.uniform(0.0, 1.0)
-    print(rnd)
-    sum = 0
-    for i in range(len(graphs)):
-        sum += proba[i]
-        if sum >= rnd:
-            return i
+def find_random_graph(proba):
+    '''
+    Parameters:
+    @param graphs: list of graphs
+    @param proba: list of probabilities
+    @return: the index of the graph picked randomly
+    '''
+    return np.random.choice(len(proba), p=proba)
 
 
 def distances_src_to_many(graphs, src, alpha=0.9):
@@ -86,6 +85,10 @@ def distances_src_to_many(graphs, src, alpha=0.9):
 
 
 def distances_to_proba(distances):
+    '''
+    @param distances: ndarray distances from one graph to all others
+    @return matrix of the same size as distances, with the probability of each graph to be selected
+    '''
     return distances / np.sum(distances)
 
 
@@ -96,16 +99,18 @@ def find_next_graph(distances, graphs_index):
     mins = distances_copy.min(axis=0)
 
     mins[mins == math.inf] = 0.
-    # print("mins: ", mins)
     argmax = mins.argmax()
     while argmax in graphs_index:
         mins[argmax] = 0.
         argmax = mins.argmax()
-    # print("pick: ", argmax)
     return argmax
 
 
 def find_median(distances, graphs_index):
+    '''
+    @param distances: ndarray of 2 dimensions of distances between graphs
+    @return: the index of the median graph
+    '''
     distances_of_selected_graph = np.zeros((len(graphs_index), len(graphs_index)))
     for i in range(len(graphs_index)):
         for j in range(i + 1, len(graphs_index)):
@@ -181,3 +186,32 @@ def test_study_median_approx(file_prefix="mutag_",
 
 
 test_study_median_approx(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23")
+
+
+########### VERSION 2 #############
+
+def find_next_graph(distances, graphs_index, random=True):
+    distances_of_selected_graph = distances[graphs_index, :]
+    distances_of_selected_graph[:, graphs_index] = 0
+    mins = np.argmin(distances_of_selected_graph, axis=0)
+    if not random:
+        return np.argmax
+    distribution = distances_to_proba(distances_of_selected_graph)
+    return find_random_graph(distribution)
+
+
+def study_median_approximation(graphs, distances_matrix, alpha=0.9):
+    selected_graphs_index = []
+
+    selected_graphs_index.append(random.randint(0, len(graphs)))
+    selected_graphs_index.append(find_random_graph(graphs, distances_matrix[selected_graphs_index[0], :]))
+    distances_to_reald_median = np.zeros(len(graphs))
+    real_median = find_real_median(distances_matrix)
+    for i in range(2, len(graphs)):
+        print("Iteration " + str(i) + " over: " + str(len(graphs) - 2))
+        new = find_next_graph(distances_matrix, selected_graphs_index)
+        selected_graphs_index.append(new)
+        median_of_iteration = find_median(distances_matrix, selected_graphs_index)
+        print("Median of the step: graph n°", median_of_iteration)
+        distances_to_reald_median[i] = Fused_Gromov_Wasserstein_distance(alpha=alpha, features_metric='dirac',method='shortest_path').graph_d(graphs[median_of_iteration], graphs[real_median])
+
