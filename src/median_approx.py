@@ -4,15 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
 import math
+import to_go_faster as tgf
 import test_toys_graph as test
-
 sys.path.append(os.path.relpath('../lib'))
-from ego_barycenter import compute_barycenter
-from lib.graph import Graph
 import parse_active
 import tools
 from lib.ot_distances import Fused_Gromov_Wasserstein_distance
 import time
+
 
 path_to_data = "../activ_ego/"
 
@@ -91,7 +90,11 @@ def distances_to_proba(distances):
 
 
 def find_next_graph(distances, graphs_index):
-    mins = distances.min(axis=0)
+    distances_copy = np.copy(distances)
+    for i in range(len(distances_copy)):
+        distances_copy[i,i] = math.inf
+    mins = distances_copy.min(axis=0)
+
     mins[mins == math.inf] = 0.
     # print("mins: ", mins)
     argmax = mins.argmax()
@@ -112,52 +115,34 @@ def find_median(distances, graphs_index):
     return graphs_index[np.argmin(sums)]
 
 
-def study_approx_median(graphs, alpha=0.9, real_median=None):
-    first_graph = random.randint(0, len(graphs) - 1)
-    distances_first_graph = distances_src_to_many(graphs, first_graph, alpha)
+def find_real_median(distances_matrix):
+    sums = np.sum(distances_matrix, axis=1)
+    return np.argmin(sums)
 
+
+def study_approx_median(graphs, alpha=0.9, distances_matrix=None):
+    first_graph = random.randint(0, len(graphs) - 1)
+    distances_first_graph = distances_matrix[first_graph]
+    if distances_matrix is None:
+        raise Exception("distances_matrix is not defined")
+    real_median = find_real_median(distances_matrix)
+    print("real median: ", real_median)
     distribution = distances_to_proba(distances_first_graph)
     second_graph = find_random_graph(graphs, distribution)
     graph_index_list = [first_graph, second_graph]
-    distances_matrix = np.zeros((len(graphs), len(graphs)))
-    distances_matrix.fill(math.inf)
-    distances_matrix[graph_index_list[0], :] = distances_first_graph
-    distances_matrix[graph_index_list[1], :] = distances_src_to_many(graphs, second_graph, alpha)
     distances_to_real_median = np.zeros(len(graphs))
-    distances_to_real_median[0] = Fused_Gromov_Wasserstein_distance(alpha=alpha, features_metric='dirac',
-                                                                    method='shortest_path').graph_d(
-        graphs[first_graph], graphs[real_median])
-    distances_to_real_median[1] = Fused_Gromov_Wasserstein_distance(alpha=alpha,
-                                                                    features_metric='dirac',
-                                                                    method='shortest_path').graph_d(
-        graphs[second_graph], graphs[real_median])
-    '''
-    x = [i for i in range(len(distances_to_real_median))]
-    plt.ion()
-    figure, ax = plt.subplots(figsize=(10, 5))
-    plt.title("Distances to real median over iterations")
-    plt.xlabel("Iteration")
-    plt.ylabel("Distance")
-    line1, = ax.plot(x, distances_to_real_median)
-    '''
+    distances_to_real_median[0] = distances_matrix[first_graph, real_median]
+    distances_to_real_median[1] = distances_matrix[second_graph, real_median]
+
     for i in range(2, len(graphs)):
-        print("Iteration " + str(i) + " over: " + str(len(graphs)  - 2))
+        print("Iteration " + str(i) + " over: " + str(len(graphs) - 2))
         new = find_next_graph(distances_matrix, graph_index_list)
         graph_index_list.append(new)
-        distances_matrix[i, :] = distances_src_to_many(graphs, new, alpha)
         median_of_the_step = find_median(distances_matrix, graph_index_list)
         print("Median of the step: graph n°", median_of_the_step)
-        distances_to_real_median[i] = Fused_Gromov_Wasserstein_distance(alpha=alpha, features_metric='dirac',
-                                                                        method='shortest_path').graph_d(
-            graphs[median_of_the_step], graphs[real_median])
+        distances_to_real_median[i] = distances_matrix[median_of_the_step, real_median]
         print("Distance to real median:", distances_to_real_median[i])
-        '''
-        line1.set_xdata(x)
-        line1.set_ydata(distances_to_real_median)
-        figure.canvas.draw()
-        figure.canvas.flush_events()
-        '''
-        if i % 10 == 0:
+        if i % 200 == 0:
             plt.plot(distances_to_real_median)
             plt.show()
     plt.plot(distances_to_real_median)
@@ -184,13 +169,14 @@ def median_graph_approx(graphs, alpha=0.9):
 
 
 def test_study_median_approx(file_prefix="mutag_",
-                             file_suffix="labels_egos.txt", alpha=0.9, rule="23"):
+                             file_suffix="labels_egos.txt", alpha=0.9, rule="23", cls=0):
     start_time = time.time()
     filename = path_to_data + file_prefix + rule + file_suffix
+    distances_matrix = tgf.load_matrix_from_txt("distances_matrix/", rule, cls)
+    print("distannces_matrix shape: ", distances_matrix.shape)
     graphs, _ = parse_active.build_graphs_from_file(filename)
-    for j in range(len(graphs)):
-        print("Computing rules " + rule + " class " + str(j))
-        study_approx_median(graphs[j], real_median=3047)
+    print("Computing rules " + rule + " class " + "0" + "...")
+    study_approx_median(graphs[0], alpha=alpha, distances_matrix=distances_matrix)
     print("--- took %s seconds ---" % (time.time() - start_time))
 
 
