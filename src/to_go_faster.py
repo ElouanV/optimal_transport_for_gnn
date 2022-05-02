@@ -4,15 +4,13 @@ import os, sys
 import math
 
 sys.path.append(os.path.relpath('../lib'))
-from ego_barycenter import compute_barycenter
-from lib.graph import Graph
 import parse_active
 import tools
-from lib.ot_distances import Fused_Gromov_Wasserstein_distance
+from ot_distances import Fused_Gromov_Wasserstein_distance
 import time
 
 path_to_data = "../activ_ego/"
-path_to_matrix_to_save = "./distances_matrix/"
+path_to_matrix_to_save = "../../distances_matrix/"
 
 
 def fgw_distance(graph1, graph2, alpha=0.9):
@@ -48,4 +46,4 @@ def load_matrix_from_txt(path_to_file, rule="23", cls=0):
     return np.loadtxt(path_to_file + rule + "_" + str(cls) + ".txt", delimiter=",")
 
 
-#matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="24")
+#matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23")

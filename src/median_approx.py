@@ -6,82 +6,36 @@ import os, sys
 import math
 import to_go_faster as tgf
 import test_toys_graph as test
+
 sys.path.append(os.path.relpath('../lib'))
 import parse_active
 import tools
-from lib.ot_distances import Fused_Gromov_Wasserstein_distance
+from ot_distances import Fused_Gromov_Wasserstein_distance
 import time
-
 
 path_to_data = "../activ_ego/"
 
 
-def compute_median_graphs(graphs, alpha=0.90, show=False, rule="0", save=False, cls=0):
-    '''
+def graph_distance(graph1, graph2, alpha=0.9):
+    return Fused_Gromov_Wasserstein_distance(alpha=alpha, features_metric='dirac', method='shortest_path').graph_d(
+        graph1, graph2)
 
-    Parameters
-    ----------
-    :graphs
-    :alpha
-    :show
-    :rule
-    :save
-    :cls the class of the 0
-
-    Returns
-    -------
-
-    '''
-    n = len(graphs)
-    distance_matrix = np.zeros((n, n))
-    sum = 0
-    nb_dist_computed = 0
-    nb_dist_avoided = 0
-    for i in range(n):
-        print("Computing distance of " + str(i))
-        for j in range(i + 1, n):
-            if i == j:
-                continue
-
-            distance_matrix[i, j] = distance_matrix[j, i] = \
-                Fused_Gromov_Wasserstein_distance(alpha=alpha, features_metric='dirac', method='shortest_path').graph_d(
-                    graphs[i], graphs[j])
-            nb_dist_computed += 1
-
-    sums = distance_matrix.sum(axis=1)
-    min_index = np.argmin(sums)
-    print("Compute " + str(nb_dist_computed) + " distances, avoided " + str(nb_dist_avoided) + " find graph " + str(
-        min_index))
-
-    if show or save:
-        name = "median_graph_" + rule + "_" + str(cls) + "_a" + str(round(alpha * 100)) + ".png"
-        title = "Median graph of class " + str(cls) + " rule " + rule + " with alpha = " + str(round(alpha * 100))
-        tools.show_graph(graphs[min_index].nx_graph, save=save, name=name, title=title, layout='kamada_kawai',
-                         path="./mutag_median/")
-        return graphs[min_index]
-
-
-def find_random_graph(graphs, proba):
-    index_list = [i for i in range(len(graphs))]
-    choice = random.choices(index_list, weights=proba)
-    return choice[0]
 
 def find_random_graph(proba):
     '''
     Parameters:
-    @param graphs: list of graphs
     @param proba: list of probabilities
     @return: the index of the graph picked randomly
     '''
     return np.random.choice(len(proba), p=proba)
 
 
-def distances_src_to_many(graphs, src, alpha=0.9):
-    distances = np.zeros(len(graphs))
+def distances_src_to_many(graphs, src, distances_matrix, alpha=0.9):
     for i in range(len(graphs)):
-        distances[i] = Fused_Gromov_Wasserstein_distance(alpha=alpha, features_metric='dirac',
-                                                         method='shortest_path').graph_d(graphs[i], graphs[src])
-    return distances
+        if distances_matrix[src, i] != np.inf:
+            continue
+        distances_matrix[src, i] = distances_matrix[i, src] = graph_distance(graphs[src], graphs[i], alpha)
+    return distances_matrix
 
 
 def distances_to_proba(distances):
@@ -92,10 +46,10 @@ def distances_to_proba(distances):
     return distances / np.sum(distances)
 
 
-def find_next_graph(distances, graphs_index):
+def find_next_graph_v1(distances, graphs_index):
     distances_copy = np.copy(distances)
     for i in range(len(distances_copy)):
-        distances_copy[i,i] = math.inf
+        distances_copy[i, i] = math.inf
     mins = distances_copy.min(axis=0)
 
     mins[mins == math.inf] = 0.
@@ -111,11 +65,7 @@ def find_median(distances, graphs_index):
     @param distances: ndarray of 2 dimensions of distances between graphs
     @return: the index of the median graph
     '''
-    distances_of_selected_graph = np.zeros((len(graphs_index), len(graphs_index)))
-    for i in range(len(graphs_index)):
-        for j in range(i + 1, len(graphs_index)):
-            distances_of_selected_graph[i, j] = distances_of_selected_graph[j, i] = distances[
-                graphs_index[i], graphs_index[j]]
+    distances_of_selected_graph = distances[np.ix_(graphs_index, graphs_index)]
     sums = np.sum(distances_of_selected_graph, axis=1)
     return graphs_index[np.argmin(sums)]
 
@@ -133,7 +83,7 @@ def study_approx_median(graphs, alpha=0.9, distances_matrix=None):
     real_median = find_real_median(distances_matrix)
     print("real median: ", real_median)
     distribution = distances_to_proba(distances_first_graph)
-    second_graph = find_random_graph(graphs, distribution)
+    second_graph = find_random_graph(distribution)
     graph_index_list = [first_graph, second_graph]
     distances_to_real_median = np.zeros(len(graphs))
     distances_to_real_median[0] = distances_matrix[first_graph, real_median]
@@ -141,7 +91,7 @@ def study_approx_median(graphs, alpha=0.9, distances_matrix=None):
 
     for i in range(2, len(graphs)):
         print("Iteration " + str(i) + " over: " + str(len(graphs) - 2))
-        new = find_next_graph(distances_matrix, graph_index_list)
+        new = find_next_graph_v1(distances_matrix, graph_index_list)
         graph_index_list.append(new)
         median_of_the_step = find_median(distances_matrix, graph_index_list)
         print("Median of the step: graph n°", median_of_the_step)
@@ -150,16 +100,13 @@ def study_approx_median(graphs, alpha=0.9, distances_matrix=None):
         if i % 200 == 0:
             plt.plot(distances_to_real_median)
             plt.show()
-    plt.plot(distances_to_real_median)
-    plt.savefig("distances_to_real_median.png")
-    plt.show()
 
 
 def median_graph_approx(graphs, alpha=0.9):
     graph1 = random.randint(0, len(graphs) - 1)
     distances = distances_src_to_many(graphs, graph1, alpha)
     proba = distances_to_proba(distances)
-    graph2 = find_random_graph(graphs, proba)
+    graph2 = find_random_graph(proba)
 
     graph_list = [graphs[graph1], graphs[graph2]]
     size = 0.1 * len(graphs)
@@ -168,7 +115,7 @@ def median_graph_approx(graphs, alpha=0.9):
     distances_matrix[1, :] = distances_src_to_many(graphs, graph2, alpha)
 
     for i in range(2, size):
-        new = find_next_graph(distances_matrix)
+        new = find_next_graph(distances_matrix, graph_list)
         graph_list.append(graphs[new])
         distances_matrix[i, :] = distances_src_to_many(graphs, graph_list[new], alpha)
 
@@ -177,7 +124,7 @@ def test_study_median_approx(file_prefix="mutag_",
                              file_suffix="labels_egos.txt", alpha=0.9, rule="23", cls=0):
     start_time = time.time()
     filename = path_to_data + file_prefix + rule + file_suffix
-    distances_matrix = tgf.load_matrix_from_txt("distances_matrix/", rule, cls)
+    distances_matrix = tgf.load_matrix_from_txt("../../distances_matrix/", rule, cls)
     print("distannces_matrix shape: ", distances_matrix.shape)
     graphs, _ = parse_active.build_graphs_from_file(filename)
     print("Computing rules " + rule + " class " + "0" + "...")
@@ -185,33 +132,238 @@ def test_study_median_approx(file_prefix="mutag_",
     print("--- took %s seconds ---" % (time.time() - start_time))
 
 
-test_study_median_approx(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23")
+# test_study_median_approx(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23")
 
 
 ########### VERSION 2 #############
 
-def find_next_graph(distances, graphs_index, random=True):
+def find_next_graph(distances, graphs_index):
     distances_of_selected_graph = distances[graphs_index, :]
     distances_of_selected_graph[:, graphs_index] = 0
-    mins = np.argmin(distances_of_selected_graph, axis=0)
-    if not random:
-        return np.argmax
-    distribution = distances_to_proba(distances_of_selected_graph)
-    return find_random_graph(distribution)
+    if np.inf in distances_of_selected_graph:
+        raise Exception("inf in distances_of_selected_graph")
+
+    mins = np.min(distances_of_selected_graph, axis=0)
+
+    distribution = distances_to_proba(mins)
+    selected_graph = find_random_graph(distribution)
+    return selected_graph, (mins[selected_graph] - np.mean(mins)) / np.std(mins)
 
 
-def study_median_approximation(graphs, distances_matrix, alpha=0.9):
+def study_median_approximation_with_matrix(graphs, real_median, distances_matrix, alpha=0.9):
     selected_graphs_index = []
+    computation_time = np.zeros(len(graphs))
+    distances_to_mean = np.zeros(len(graphs))
+    distances_to_real_median = np.zeros(len(graphs))
+    start_time = time.time()
 
-    selected_graphs_index.append(random.randint(0, len(graphs)))
-    selected_graphs_index.append(find_random_graph(graphs, distances_matrix[selected_graphs_index[0], :]))
-    distances_to_reald_median = np.zeros(len(graphs))
-    real_median = find_real_median(distances_matrix)
-    for i in range(2, len(graphs)):
-        print("Iteration " + str(i) + " over: " + str(len(graphs) - 2))
-        new = find_next_graph(distances_matrix, selected_graphs_index)
+    first_graph = np.random.randint(0, len(graphs))
+    selected_graphs_index.append(first_graph)
+    distances_to_real_median[0] = graph_distance(graphs[selected_graphs_index[0]], graphs[real_median], alpha)
+
+    computation_time[0] = time.time() - start_time
+    median_over_iterations = np.zeros(len(graphs))
+    median_over_iterations[0] = first_graph
+
+    for i in range(1, len(graphs)):
+        print("Iteration " + str(i) + " over: " + str(len(graphs) - 1))
+        new, distances_to_mean[i] = find_next_graph(distances_matrix, selected_graphs_index)
         selected_graphs_index.append(new)
         median_of_iteration = find_median(distances_matrix, selected_graphs_index)
+        median_over_iterations[i] = median_of_iteration
         print("Median of the step: graph n°", median_of_iteration)
-        distances_to_reald_median[i] = Fused_Gromov_Wasserstein_distance(alpha=alpha, features_metric='dirac',method='shortest_path').graph_d(graphs[median_of_iteration], graphs[real_median])
+        distances_to_real_median[i] = distances_matrix[median_of_iteration, real_median]
+        computation_time[i] = time.time() - start_time
+        if i % 200 == 0:
+            fig, ax1 = plt.subplots()
+            color = 'tab:blue'
+            ax1.set_xlabel('Iteration')
+            ax1.set_ylabel('Distance to real median', color=color)
+            ax1.plot(distances_to_real_median, color=color)
+            ax1.tick_params(axis='y', labelcolor=color)
+
+            ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+            color = 'tab:red'
+            ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
+            ax2.plot(computation_time, color=color)
+            ax2.tick_params(axis='y', labelcolor=color)
+
+            ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
+            color = 'tab:green'
+            ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
+            ax3.plot(distances_to_mean, color=color)
+            ax3.tick_params(axis='y', labelcolor=color)
+
+            fig.tight_layout()  # otherwise the right y-label is slightly clipped
+            plt.show()
+
+    # to verify if any graph is selected twice:
+    values, counts = np.unique(selected_graphs_index, return_counts=True)
+    for i in counts:
+        if i > 1:
+            print("Error: graph selected twice")
+        if i == 0:
+            print("Error: graph not selected")
+
+    plt.plot(distances_to_real_median, 'blue')
+    plt.savefig("distances_to_real_median_m.png")
+    plt.show()
+    plt.plot(computation_time, 'red')
+    plt.savefig("computation_time_m.png")
+    plt.show()
+    plt.plot(distances_to_mean, 'green')
+    plt.savefig("distances_to_mean_m.png")
+    plt.show()
+    np.savetxt("./log/distances_to_real_median_r23_a90_m.txt.gz", distances_to_real_median)
+    np.savetxt("./log/computation_time_r23_a90_m.txt.gz", computation_time)
+    np.savetxt("./log/distances_to_mean_r23_a90_m.txt.gz", distances_to_mean)
+    np.savetxt("./log/selected_graphs_index_r23_a90_m.txt.gz", selected_graphs_index)
+    np.savetxt("./log/median_over_iterations_r23_a90_m.txt.gz", median_over_iterations)
+
+    fig, ax1 = plt.subplots()
+    color = 'tab:blue'
+    ax1.set_xlabel('Iteration')
+    ax1.set_ylabel('Distance to real median', color=color)
+    ax1.plot(distances_to_real_median, color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    color = 'tab:red'
+    ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
+    ax2.plot(computation_time, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
+    color = 'tab:green'
+    ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
+    ax3.plot(distances_to_mean, color=color)
+    ax3.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.show()
+
+
+def study_median_approximation(graphs, real_median, alpha=0.9):
+    selected_graphs_index = []
+    distances_matrix = np.full((len(graphs), len(graphs)), np.inf)
+    computation_time = np.zeros(len(graphs))
+    distances_to_mean = np.zeros(len(graphs))
+    distances_to_real_median = np.zeros(len(graphs))
+    median_over_iterations = np.empty(len(graphs))
+    start_time = time.time()
+
+    first_graph = np.random.randint(0, len(graphs))
+    selected_graphs_index.append(first_graph)
+    distances_to_real_median[0] = graph_distance(graphs[selected_graphs_index[0]], graphs[real_median])
+    distances_matrix = distances_src_to_many(graphs, first_graph, distances_matrix, alpha)
+
+    computation_time[0] = time.time() - start_time
+    median_over_iterations[0] = first_graph
+
+    for i in range(1, len(graphs)):
+        print("Iteration " + str(i) + " over: " + str(len(graphs) - 1))
+        new, distances_to_mean[i] = find_next_graph(distances_matrix, selected_graphs_index)
+        distances_matrix = distances_src_to_many(graphs, new, distances_matrix, alpha)
+        selected_graphs_index.append(new)
+        median_of_iteration = find_median(distances_matrix, selected_graphs_index)
+        median_over_iterations[i] = median_of_iteration
+        print("Median of the step: graph n°", median_of_iteration)
+        if distances_matrix[median_of_iteration, real_median] == np.inf:
+            distances_matrix[median_of_iteration, real_median] = distances_matrix[
+                real_median, median_of_iteration] = graph_distance(graphs[median_of_iteration], graphs[real_median])
+        distances_to_real_median[i] = distances_matrix[median_of_iteration, real_median]
+        computation_time[i] = time.time() - start_time
+        if i % 200 == 0:
+            fig, ax1 = plt.subplots()
+            color = 'tab:blue'
+            ax1.set_xlabel('Iteration')
+            ax1.set_ylabel('Distance to real median', color=color)
+            ax1.plot(distances_to_real_median, color=color)
+            ax1.tick_params(axis='y', labelcolor=color)
+
+            ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+            color = 'tab:red'
+            ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
+            ax2.plot(computation_time, color=color)
+            ax2.tick_params(axis='y', labelcolor=color)
+
+            ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
+            color = 'tab:green'
+            ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
+            ax3.plot(distances_to_mean, color=color)
+            ax3.tick_params(axis='y', labelcolor=color)
+
+            fig.tight_layout()  # otherwise the right y-label is slightly clipped
+            plt.show()
+
+    # to verify if any graph is selected twice:
+    values, counts = np.unique(selected_graphs_index, return_counts=True)
+    for i in counts:
+        if i > 1:
+            print("Error: graph selected twice")
+        if i == 0:
+            print("Error: graph not selected")
+
+    plt.plot(distances_to_real_median, 'blue')
+    plt.savefig("distances_to_real_median_r.png")
+    plt.show()
+    plt.plot(computation_time, 'red')
+    plt.savefig("computation_time_r.png")
+    plt.show()
+    plt.plot(distances_to_mean, 'green')
+    plt.savefig("distances_to_mean_r.png")
+    plt.show()
+    np.savetxt("./log/distances_to_real_median_r23_a90_r.txt.gz", distances_to_real_median)
+    np.savetxt("./log/computation_time_r23_a90_r.txt.gz", computation_time)
+    np.savetxt("./log/distances_to_mean_r23_a90_r.txt.gz", distances_to_mean)
+    np.savetxt("./log/selected_graphs_index_r23_a90_r.txt.gz", selected_graphs_index)
+    np.savetxt("./log/median_over_iterations_r23_a90_r.txt.gz", median_over_iterations)
+
+    fig, ax1 = plt.subplots()
+    color = 'tab:blue'
+    ax1.set_xlabel('Iteration')
+    ax1.set_ylabel('Distance to real median', color=color)
+    ax1.plot(distances_to_real_median, color=color)
+    ax1.tick_params(axis='y', labelcolor=color)
+
+    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+    color = 'tab:red'
+    ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
+    ax2.plot(computation_time, color=color)
+    ax2.tick_params(axis='y', labelcolor=color)
+
+    ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
+    color = 'tab:green'
+    ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
+    ax3.plot(distances_to_mean, color=color)
+    ax3.tick_params(axis='y', labelcolor=color)
+
+    fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.show()
+    print("Median of the last step: graph n°", median_of_iteration)
+    return distances_matrix
+
+
+def test_study_median_approximation(file_prefix="mutag_",
+                                    file_suffix="labels_egos.txt", alpha=0.9, rule="23", cls=0,
+                                    with_distances_matrix=False):
+    start_time = time.time()
+    filename = path_to_data + file_prefix + rule + file_suffix
+    distances_matrix = tgf.load_matrix_from_txt("../../distances_matrix/", rule, cls)
+    graphs, _ = parse_active.build_graphs_from_file(filename)
+    print("Computing rules " + rule + " class " + "0" + "...")
+    if with_distances_matrix:
+        real_median = find_real_median(distances_matrix)
+        study_median_approximation_with_matrix(graphs[cls], real_median, distances_matrix, alpha=alpha)
+        # print("Real median: " + str(real_median))
+    else:
+        distances_matrix_computed = study_median_approximation(graphs[cls], 3407, alpha=alpha)
+
+    print("--- took %s seconds ---" % (time.time() - start_time))
+
+
+test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
+                                with_distances_matrix=True)
+test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
+                                with_distances_matrix=False)
 

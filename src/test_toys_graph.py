@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import os, sys
 
 sys.path.append(os.path.relpath('../lib'))
-from lib.graph import draw_transp, Graph
-from lib.ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
-from lib.data_loader import load_local_data
+from graph import draw_transp, Graph
+from ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
+from data_loader import load_local_data
 
 
 def show_graph(G, name="graphs", layout='random', title='Graph', labeled=False, attr_name='attr_name', save=False,

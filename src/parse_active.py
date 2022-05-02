@@ -2,8 +2,8 @@ import networkx as nx
 import os, sys
 
 sys.path.append(os.path.relpath('../lib'))
-from lib.graph import Graph
-from lib.ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
+from graph import Graph
+from ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
 import numpy as np
 
 import test_toys_graph as tools
