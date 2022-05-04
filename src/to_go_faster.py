@@ -43,7 +43,13 @@ def matrix_distances_to_txt(file_prefix="mutag_",
 
 
 def load_matrix_from_txt(path_to_file, rule="23", cls=0):
-    return np.loadtxt(path_to_file + rule + "_" + str(cls) + ".txt", delimiter=",")
+    mat = np.loadtxt(path_to_file + rule + "_" + str(cls) + ".txt", delimiter=",")
+    if np.NAN in mat:
+        raise ValueError("NaN in matrix")
+    return mat
 
 
-#matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23")
+np.savetxt
+
+#matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="24")
+#matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="18")

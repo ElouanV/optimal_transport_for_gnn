@@ -43,7 +43,11 @@ def distances_to_proba(distances):
     @param distances: ndarray distances from one graph to all others
     @return matrix of the same size as distances, with the probability of each graph to be selected
     '''
-    return distances / np.sum(distances)
+    denum = np.sum(distances)
+    if denum == 0:
+        print(distances)
+        raise Exception("distances_to_proba: denum == 0")
+    return distances / denum
 
 
 def find_next_graph_v1(distances, graphs_index):
@@ -144,13 +148,36 @@ def find_next_graph(distances, graphs_index):
         raise Exception("inf in distances_of_selected_graph")
 
     mins = np.min(distances_of_selected_graph, axis=0)
-
-    distribution = distances_to_proba(mins)
+    try:
+        distribution = distances_to_proba(mins)
+    except Exception as e:
+        print(e)
+        plt.plot(mins)
+        plt.title("mins")
+        plt.show()
+        plt.matshow(distances_of_selected_graph)
+        plt.show()
+        ligne_zero = [distances.sum(axis=1) == 0]
+        distances_line_zero = distances[ligne_zero[0], :]
+        print(distances_line_zero)
+        ligne_zero_sg = [distances_of_selected_graph.sum(axis=1) == 0]
+        distances_line_zero_sg = distances_of_selected_graph[ligne_zero_sg[0], :]
+        print(distances_line_zero_sg)
+        print(mins[mins != 0])
+        sum = distances_of_selected_graph.sum(axis=0)
+        print(sum[sum != 0])
+        sum_not_null = [sum != 0]
+        distance_where_sum_not_null = distances_of_selected_graph[:, sum_not_null[0]]
+        sum_where_sum_not_null = sum[sum_not_null]
+        print(sum_not_null)
+        print(len(sum[sum_not_null]))
+        print()
+        raise Exception("inf in distribution")
     selected_graph = find_random_graph(distribution)
     return selected_graph, (mins[selected_graph] - np.mean(mins)) / np.std(mins)
 
 
-def study_median_approximation_with_matrix(graphs, real_median, distances_matrix, alpha=0.9):
+def study_median_approximation_with_matrix(graphs, real_median, distances_matrix, alpha=0.9, rule="23"):
     selected_graphs_index = []
     computation_time = np.zeros(len(graphs))
     distances_to_mean = np.zeros(len(graphs))
@@ -207,18 +234,23 @@ def study_median_approximation_with_matrix(graphs, real_median, distances_matrix
 
     plt.plot(distances_to_real_median, 'blue')
     plt.savefig("distances_to_real_median_m.png")
+    plt.title("rule" + rule + " distance to real median")
     plt.show()
+
     plt.plot(computation_time, 'red')
     plt.savefig("computation_time_m.png")
+    plt.title("Rule" + rule + " computation time")
     plt.show()
+
     plt.plot(distances_to_mean, 'green')
     plt.savefig("distances_to_mean_m.png")
+    plt.title("Rule" + rule + " distances_to_mean")
     plt.show()
-    np.savetxt("./log/distances_to_real_median_r23_a90_m.txt.gz", distances_to_real_median)
-    np.savetxt("./log/computation_time_r23_a90_m.txt.gz", computation_time)
-    np.savetxt("./log/distances_to_mean_r23_a90_m.txt.gz", distances_to_mean)
-    np.savetxt("./log/selected_graphs_index_r23_a90_m.txt.gz", selected_graphs_index)
-    np.savetxt("./log/median_over_iterations_r23_a90_m.txt.gz", median_over_iterations)
+    np.savetxt("./log/distances_to_real_median_r" + rule + "_a90_m.txt.gz", distances_to_real_median)
+    np.savetxt("./log/computation_time_r" + rule + "_a90_m.txt.gz", computation_time)
+    np.savetxt("./log/distances_to_mean_r" + rule + "_a90_m.txt.gz", distances_to_mean)
+    np.savetxt("./log/selected_graphs_index_r" + rule + "_a90_m.txt.gz", selected_graphs_index)
+    np.savetxt("./log/median_over_iterations_r" + rule + "_a90_m.txt.gz", median_over_iterations)
 
     fig, ax1 = plt.subplots()
     color = 'tab:blue'
@@ -240,10 +272,11 @@ def study_median_approximation_with_matrix(graphs, real_median, distances_matrix
     ax3.tick_params(axis='y', labelcolor=color)
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.title("Rule" + rule + " median  over iterations")
     plt.show()
 
 
-def study_median_approximation(graphs, real_median, alpha=0.9):
+def study_median_approximation(graphs, real_median, alpha=0.9, rule="23"):
     selected_graphs_index = []
     distances_matrix = np.full((len(graphs), len(graphs)), np.inf)
     computation_time = np.zeros(len(graphs))
@@ -305,19 +338,25 @@ def study_median_approximation(graphs, real_median, alpha=0.9):
             print("Error: graph not selected")
 
     plt.plot(distances_to_real_median, 'blue')
-    plt.savefig("distances_to_real_median_r.png")
+    plt.savefig("rule" + rule + "_distances_to_real_median_r.png")
+    plt.title("rule" + rule + " distance to real median")
     plt.show()
+
     plt.plot(computation_time, 'red')
-    plt.savefig("computation_time_r.png")
+    plt.savefig("rule" + rule + "_computation_time_r.png")
+    plt.title("rule" + rule + " computation time")
     plt.show()
+
     plt.plot(distances_to_mean, 'green')
-    plt.savefig("distances_to_mean_r.png")
+    plt.savefig("rule" + rule + "_distances_to_mean_r.png")
+    plt.title("rule" + rule + " distances to mean")
     plt.show()
-    np.savetxt("./log/distances_to_real_median_r23_a90_r.txt.gz", distances_to_real_median)
-    np.savetxt("./log/computation_time_r23_a90_r.txt.gz", computation_time)
-    np.savetxt("./log/distances_to_mean_r23_a90_r.txt.gz", distances_to_mean)
-    np.savetxt("./log/selected_graphs_index_r23_a90_r.txt.gz", selected_graphs_index)
-    np.savetxt("./log/median_over_iterations_r23_a90_r.txt.gz", median_over_iterations)
+
+    np.savetxt("./log/distances_to_real_median_r" + rule + "_a90_r.txt.gz", distances_to_real_median)
+    np.savetxt("./log/computation_time_r" + rule + "_a90_r.txt.gz", computation_time)
+    np.savetxt("./log/distances_to_mean_r" + rule + "_a90_r.txt.gz", distances_to_mean)
+    np.savetxt("./log/selected_graphs_index_r" + rule + "_a90_r.txt.gz", selected_graphs_index)
+    np.savetxt("./log/median_over_iterations_r" + rule + "_a90_r.txt.gz", median_over_iterations)
 
     fig, ax1 = plt.subplots()
     color = 'tab:blue'
@@ -339,6 +378,7 @@ def study_median_approximation(graphs, real_median, alpha=0.9):
     ax3.tick_params(axis='y', labelcolor=color)
 
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
+    plt.title("Rule " + rule + " median selection over iterations")
     plt.show()
     print("Median of the last step: graph n°", median_of_iteration)
     return distances_matrix
@@ -354,16 +394,18 @@ def test_study_median_approximation(file_prefix="mutag_",
     print("Computing rules " + rule + " class " + "0" + "...")
     if with_distances_matrix:
         real_median = find_real_median(distances_matrix)
-        study_median_approximation_with_matrix(graphs[cls], real_median, distances_matrix, alpha=alpha)
-        # print("Real median: " + str(real_median))
+        study_median_approximation_with_matrix(graphs[cls], real_median, distances_matrix, alpha=alpha, rule=rule)
+        print("Real median: " + str(real_median))
     else:
-        distances_matrix_computed = study_median_approximation(graphs[cls], 3407, alpha=alpha)
+        distances_matrix_computed = study_median_approximation(graphs[cls], 38, alpha=alpha, rule=rule)
 
     print("--- took %s seconds ---" % (time.time() - start_time))
 
 
-test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
+test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="24",
                                 with_distances_matrix=True)
-test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
+
+test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="24",
                                 with_distances_matrix=False)
+
 
