@@ -35,6 +35,7 @@ def distances_src_to_many(graphs, src, distances_matrix, alpha=0.9):
         if distances_matrix[src, i] != np.inf:
             continue
         distances_matrix[src, i] = distances_matrix[i, src] = graph_distance(graphs[src], graphs[i], alpha)
+    distances_matrix[src, src] = 0
     return distances_matrix
 
 
@@ -48,20 +49,6 @@ def distances_to_proba(distances):
         print(distances)
         raise Exception("distances_to_proba: denum == 0")
     return distances / denum
-
-
-def find_next_graph_v1(distances, graphs_index):
-    distances_copy = np.copy(distances)
-    for i in range(len(distances_copy)):
-        distances_copy[i, i] = math.inf
-    mins = distances_copy.min(axis=0)
-
-    mins[mins == math.inf] = 0.
-    argmax = mins.argmax()
-    while argmax in graphs_index:
-        mins[argmax] = 0.
-        argmax = mins.argmax()
-    return argmax
 
 
 def find_median(distances, graphs_index):
@@ -78,68 +65,6 @@ def find_real_median(distances_matrix):
     sums = np.sum(distances_matrix, axis=1)
     return np.argmin(sums)
 
-
-def study_approx_median(graphs, alpha=0.9, distances_matrix=None):
-    first_graph = random.randint(0, len(graphs) - 1)
-    distances_first_graph = distances_matrix[first_graph]
-    if distances_matrix is None:
-        raise Exception("distances_matrix is not defined")
-    real_median = find_real_median(distances_matrix)
-    print("real median: ", real_median)
-    distribution = distances_to_proba(distances_first_graph)
-    second_graph = find_random_graph(distribution)
-    graph_index_list = [first_graph, second_graph]
-    distances_to_real_median = np.zeros(len(graphs))
-    distances_to_real_median[0] = distances_matrix[first_graph, real_median]
-    distances_to_real_median[1] = distances_matrix[second_graph, real_median]
-
-    for i in range(2, len(graphs)):
-        print("Iteration " + str(i) + " over: " + str(len(graphs) - 2))
-        new = find_next_graph_v1(distances_matrix, graph_index_list)
-        graph_index_list.append(new)
-        median_of_the_step = find_median(distances_matrix, graph_index_list)
-        print("Median of the step: graph n°", median_of_the_step)
-        distances_to_real_median[i] = distances_matrix[median_of_the_step, real_median]
-        print("Distance to real median:", distances_to_real_median[i])
-        if i % 200 == 0:
-            plt.plot(distances_to_real_median)
-            plt.show()
-
-
-def median_graph_approx(graphs, alpha=0.9):
-    graph1 = random.randint(0, len(graphs) - 1)
-    distances = distances_src_to_many(graphs, graph1, alpha)
-    proba = distances_to_proba(distances)
-    graph2 = find_random_graph(proba)
-
-    graph_list = [graphs[graph1], graphs[graph2]]
-    size = 0.1 * len(graphs)
-    distances_matrix = np.zeros((size, size))
-    distances_matrix[0, :] = distances
-    distances_matrix[1, :] = distances_src_to_many(graphs, graph2, alpha)
-
-    for i in range(2, size):
-        new = find_next_graph(distances_matrix, graph_list)
-        graph_list.append(graphs[new])
-        distances_matrix[i, :] = distances_src_to_many(graphs, graph_list[new], alpha)
-
-
-def test_study_median_approx(file_prefix="mutag_",
-                             file_suffix="labels_egos.txt", alpha=0.9, rule="23", cls=0):
-    start_time = time.time()
-    filename = path_to_data + file_prefix + rule + file_suffix
-    distances_matrix = tgf.load_matrix_from_txt("../../distances_matrix/", rule, cls)
-    print("distannces_matrix shape: ", distances_matrix.shape)
-    graphs, _ = parse_active.build_graphs_from_file(filename)
-    print("Computing rules " + rule + " class " + "0" + "...")
-    study_approx_median(graphs[0], alpha=alpha, distances_matrix=distances_matrix)
-    print("--- took %s seconds ---" % (time.time() - start_time))
-
-
-# test_study_median_approx(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23")
-
-
-########### VERSION 2 #############
 
 def find_next_graph(distances, graphs_index):
     distances_of_selected_graph = distances[graphs_index, :]
@@ -276,7 +201,7 @@ def study_median_approximation_with_matrix(graphs, real_median, distances_matrix
     plt.show()
 
 
-def study_median_approximation(graphs, real_median, alpha=0.9, rule="23"):
+def study_median_approximation(graphs, real_median, alpha=0.9, rule="23", distances_matrix_r=None):
     selected_graphs_index = []
     distances_matrix = np.full((len(graphs), len(graphs)), np.inf)
     computation_time = np.zeros(len(graphs))
@@ -397,15 +322,22 @@ def test_study_median_approximation(file_prefix="mutag_",
         study_median_approximation_with_matrix(graphs[cls], real_median, distances_matrix, alpha=alpha, rule=rule)
         print("Real median: " + str(real_median))
     else:
-        distances_matrix_computed = study_median_approximation(graphs[cls], 38, alpha=alpha, rule=rule)
-
+        distances_matrix_computed = study_median_approximation(graphs[cls], 3407, alpha=alpha, rule=rule, distances_matrix_r=distances_matrix)
+        for i in range(len(distances_matrix_computed)):
+            for j in range(len(distances_matrix_computed[i])):
+                if distances_matrix_computed[i][j] != distances_matrix[i][j]:
+                    print("Error: distance matrix not equal")
+        np.savetxt(rule + "_" + str(cls) + ".txt.gz", distances_matrix_computed, delimiter=",")
     print("--- took %s seconds ---" % (time.time() - start_time))
 
 
-test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="24",
+
+
+test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
                                 with_distances_matrix=True)
 
-test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="24",
+
+test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
                                 with_distances_matrix=False)
 
 

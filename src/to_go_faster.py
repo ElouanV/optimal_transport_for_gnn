@@ -25,9 +25,10 @@ def distances_matrix(graphs, alpha=0.9, rule="23", cls=0):
         print("Computing distance of " + str(i))
         for j in range(i, len(graphs)):
             if i == j:
-                continue
-            res[j, i] = res[i, j] = fgw_distance(graphs[i], graphs[j], alpha=alpha)
-    np.savetxt(path_to_matrix_to_save + rule + "_" + str(cls) + ".txt", res, delimiter=",")
+                res[i, j] = 0
+            else:
+                res[j, i] = res[i, j] = fgw_distance(graphs[i], graphs[j], alpha=alpha)
+    np.savetxt(path_to_matrix_to_save + rule + "_" + str(cls) + ".txt.gz", res, delimiter=",")
     return res
 
 
@@ -43,13 +44,11 @@ def matrix_distances_to_txt(file_prefix="mutag_",
 
 
 def load_matrix_from_txt(path_to_file, rule="23", cls=0):
-    mat = np.loadtxt(path_to_file + rule + "_" + str(cls) + ".txt", delimiter=",")
+    mat = np.loadtxt(path_to_file + rule + "_" + str(cls) + ".txt.gz", delimiter=",")
     if np.NAN in mat:
         raise ValueError("NaN in matrix")
     return mat
 
 
-np.savetxt
-
-#matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="24")
+#matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23")
 #matrix_distances_to_txt(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="18")
