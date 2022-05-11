@@ -99,8 +99,6 @@ def find_next_graph(distances, graphs_index):
         print()
         raise Exception("inf in distribution")
 
-
-
     selected_graph = find_random_graph(distribution)
     return selected_graph, (mins[selected_graph] - np.mean(mins)) / np.std(mins), mins
 
@@ -108,6 +106,8 @@ def find_next_graph(distances, graphs_index):
 def study_median_approximation_with_matrix(graphs, real_median, distances_matrix, alpha=0.9, rule="23"):
     selected_graphs_index = []
     computation_time = np.zeros(len(graphs))
+
+    ### Monitoring matrix ###
     distances_to_mean = np.zeros(len(graphs))
     distances_to_real_median = np.zeros(len(graphs))
     start_time = time.time()
@@ -119,11 +119,8 @@ def study_median_approximation_with_matrix(graphs, real_median, distances_matrix
     first_graph = np.random.randint(0, len(graphs))
     selected_graphs_index.append(first_graph)
     distances_to_real_median[0] = graph_distance(graphs[selected_graphs_index[0]], graphs[real_median], alpha)
-
     computation_time[0] = time.time() - start_time
-
     median_over_iterations[0] = first_graph
-
 
     for i in range(1, len(graphs)):
         print("Iteration " + str(i) + " over: " + str(len(graphs) - 1))
@@ -168,8 +165,6 @@ def study_median_approximation_with_matrix(graphs, real_median, distances_matrix
             plt.yscale("log")
             plt.show()
 
-
-
     # to verify if any graph is selected twice:
     values, counts = np.unique(selected_graphs_index, return_counts=True)
     for i in counts:
@@ -178,103 +173,144 @@ def study_median_approximation_with_matrix(graphs, real_median, distances_matrix
         if i == 0:
             print("Error: graph not selected")
 
-    plt.plot(distances_to_real_median, 'blue')
-    plt.savefig("distances_to_real_median_m.png")
-    plt.title("rule" + rule + " distance to real median")
-    plt.show()
+    def save_ndarray():
+        np.savetxt("./log/distances_to_real_median_r" + rule + "_a90_m.txt.gz", distances_to_real_median)
+        np.savetxt("./log/computation_time_r" + rule + "_a90_m.txt.gz", computation_time)
+        np.savetxt("./log/distances_to_mean_r" + rule + "_a90_m.txt.gz", distances_to_mean)
+        np.savetxt("./log/selected_graphs_index_r" + rule + "_a90_m.txt.gz", selected_graphs_index)
+        np.savetxt("./log/median_over_iterations_r" + rule + "_a90_m.txt.gz", median_over_iterations)
+        np.savetxt("./log/dist_g_s_r" + rule + "_a90_m.txt.gz", dist_g_s)
+        np.savetxt("./log/dist_c_s_r" + rule + "_a90_m.txt.gz", dist_c_s)
+        np.savetxt("./log/cand_prob_r" + rule + "_a90_m.txt.gz", np.array(candidate_prob))
+    save_ndarray()
 
-    plt.plot(computation_time, 'red')
-    plt.savefig("computation_time_m.png")
-    plt.title("Rule" + rule + " computation time")
-    plt.show()
+    def show_plot():
+        plt.plot(distances_to_real_median, 'blue')
+        plt.savefig("distances_to_real_median_m.png")
+        plt.title("rule" + rule + " distance to real median")
+        plt.show()
 
-    plt.plot(distances_to_mean, 'green')
-    plt.savefig("distances_to_mean_m.png")
-    plt.title("Rule" + rule + " distances_to_mean")
-    plt.show()
-    np.savetxt("./log/distances_to_real_median_r" + rule + "_a90_m.txt.gz", distances_to_real_median)
-    np.savetxt("./log/computation_time_r" + rule + "_a90_m.txt.gz", computation_time)
-    np.savetxt("./log/distances_to_mean_r" + rule + "_a90_m.txt.gz", distances_to_mean)
-    np.savetxt("./log/selected_graphs_index_r" + rule + "_a90_m.txt.gz", selected_graphs_index)
-    np.savetxt("./log/median_over_iterations_r" + rule + "_a90_m.txt.gz", median_over_iterations)
-    np.savetxt("./log/dist_g_s_r" + rule + "_a90_m.txt.gz", dist_g_s)
-    np.savetxt("./log/dist_c_s_r" + rule + "_a90_m.txt.gz", dist_c_s)
-    np.savetxt("./log/cand_prob_r" + rule + "_a90_m.txt.gz", np.array(candidate_prob))
+        plt.plot(computation_time, 'red')
+        plt.savefig("computation_time_m.png")
+        plt.title("Rule" + rule + " computation time")
+        plt.show()
 
-    fig, ax1 = plt.subplots()
-    color = 'tab:blue'
-    ax1.set_xlabel('Iteration')
-    ax1.set_ylabel('Distance to real median', color=color)
-    ax1.plot(distances_to_real_median, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
+        plt.plot(distances_to_mean, 'green')
+        plt.savefig("distances_to_mean_m.png")
+        plt.title("Rule" + rule + " distances_to_mean")
+        plt.show()
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    color = 'tab:red'
-    ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
-    ax2.plot(computation_time, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+        fig, ax1 = plt.subplots()
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
 
-    ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
-    color = 'tab:green'
-    ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
-    ax3.plot(distances_to_mean, color=color)
-    ax3.tick_params(axis='y', labelcolor=color)
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:red'
+        ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
+        ax2.plot(computation_time, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.title("Rule" + rule + " median  over iterations")
-    plt.show()
+        ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
+        color = 'tab:green'
+        ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
+        ax3.plot(distances_to_mean, color=color)
+        ax3.tick_params(axis='y', labelcolor=color)
 
-    fig, ax1 = plt.subplots()
-    color = 'tab:blue'
-    ax1.set_xlabel('Iteration')
-    ax1.set_ylabel('Distance to real median', color=color)
-    ax1.plot(distances_to_real_median, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        plt.title("Rule" + rule + " median  over iterations")
+        plt.show()
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    color = 'tab:green'
-    ax2.set_ylabel('Candidate', color=color)  # we already handled the x-label with ax1
-    ax2.plot(dist_g_s, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+        fig, ax1 = plt.subplots()
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.title("Rule" + rule + " distance of selectected graph to the set")
-    plt.savefig("dist_g_s_r" + rule + "_a90_m.png")
-    plt.show()
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:green'
+        ax2.set_ylabel('Candidate', color=color)  # we already handled the x-label with ax1
+        ax2.plot(dist_g_s, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
 
-    fig, ax1 = plt.subplots()
-    color = 'tab:blue'
-    ax1.set_xlabel('Iteration')
-    ax1.set_ylabel('Distance to real median', color=color)
-    ax1.plot(distances_to_real_median, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        plt.title("Rule" + rule + " distance of selectected graph to the set")
+        plt.savefig("dist_g_s_r" + rule + "_a90_m.png")
+        plt.show()
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    color = 'tab:green'
-    ax2.set_ylabel('Distance candidate to set', color=color)  # we already handled the x-label with ax1
-    ax2.plot(dist_c_s, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+        fig, ax1 = plt.subplots()
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.title("Rule" + rule + " distance of candidates graph to the set")
-    plt.savefig("dist_can_s_r" + rule + "_a90_m.png")
-    plt.show()
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:green'
+        ax2.set_ylabel('Distance candidate to set', color=color)  # we already handled the x-label with ax1
+        ax2.plot(dist_c_s, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
+
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        plt.title("Rule" + rule + " distance of candidates graph to the set")
+        plt.savefig("dist_can_s_r" + rule + "_a90_m.png")
+        plt.show()
+
+    ### Distance to the real median and distance candidate of iteration to set, log scale
+        fig, ax1 = plt.subplots(figsize=(10, 10))
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to the real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
+
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:red'
+        ax2.set_ylabel('Distance candidate to set', color=color)  # we already handled the x-label with ax1
+        ax2.plot(dist_c_s, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
+        ax2.set_yscale('log')
+        plt.savefig("./dist_can_s_log.png")
+        plt.show()
+    ### Distance to the real median and distance selected graph of iteration to set, log scale
+        fig, ax1 = plt.subplots(figsize=(10, 10))
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to the real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
+
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:red'
+        ax2.set_ylabel('Distance candidate to set', color=color)  # we already handled the x-label with ax1
+        ax2.plot(dist_g_s, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
+        ax2.set_yscale('log')
+        plt.savefig("./dist_g_s_log.png")
+        plt.show()
 
 
-    x = [200* i for i in range(len(candidate_prob))]
-    fig, ax1 = plt.subplots()
-    ax1.set_title("distribution over iterations")
-    ax1.boxplot(candidate_prob)
-    ax1.set_xticklabels(x)
-    plt.xticks(rotation=90)
-    plt.yscale("log")
-    plt.savefig("distribution_over_iterations_m.png")
-    plt.show()
+        x = [200* i for i in range(len(candidate_prob))]
+        fig, ax1 = plt.subplots()
+        ax1.set_title("distribution over iterations")
+        ax1.boxplot(candidate_prob)
+        ax1.set_xticklabels(x)
+        plt.xticks(rotation=90)
+        plt.yscale("log")
+        plt.savefig("distribution_over_iterations_m.png")
+        plt.show()
+    show_plot()
+    return median_over_iterations[-1]
 
 
 def study_median_approximation(graphs, real_median, alpha=0.9, rule="23", distances_matrix_r=None):
     selected_graphs_index = []
     distances_matrix = np.full((len(graphs), len(graphs)), np.inf)
+
+    ### Monitoring matrix ###
     computation_time = np.zeros(len(graphs))
     distances_to_mean = np.zeros(len(graphs))
     distances_to_real_median = np.zeros(len(graphs))
@@ -282,6 +318,7 @@ def study_median_approximation(graphs, real_median, alpha=0.9, rule="23", distan
     dist_g_s = np.zeros(len(graphs))
     dist_c_s = np.zeros(len(graphs))
     candidate_prob = []
+
     start_time = time.time()
 
     first_graph = np.random.randint(0, len(graphs))
@@ -342,104 +379,108 @@ def study_median_approximation(graphs, real_median, alpha=0.9, rule="23", distan
     values, counts = np.unique(selected_graphs_index, return_counts=True)
     for i in counts:
         if i > 1:
-            print("Error: graph selected twice")
+            print("ERROR: graph selected twice")
         if i == 0:
-            print("Error: graph not selected")
+            print("ERROR: graph not selected")
 
-    plt.plot(distances_to_real_median, 'blue')
-    plt.savefig("rule" + rule + "_distances_to_real_median_r.png")
-    plt.title("rule" + rule + " distance to real median")
-    plt.show()
+    def save_matrix():
+        np.savetxt("./log/distances_to_real_median_r" + rule + "_a90_r.txt.gz", distances_to_real_median)
+        np.savetxt("./log/computation_time_r" + rule + "_a90_r.txt.gz", computation_time)
+        np.savetxt("./log/distances_to_mean_r" + rule + "_a90_r.txt.gz", distances_to_mean)
+        np.savetxt("./log/selected_graphs_index_r" + rule + "_a90_r.txt.gz", selected_graphs_index)
+        np.savetxt("./log/median_over_iterations_r" + rule + "_a90_r.txt.gz", median_over_iterations)
+        np.savetxt("./log/dist_g_s_r" + rule + "_a90_r.txt.gz", dist_g_s)
+        np.savetxt("./log/dist_c_s_r" + rule + "_a90_r.txt.gz", dist_c_s)
+        np.savetxt("./log/cand_prob_r" + rule + "_a90_r.txt.gz", np.array(candidate_prob))
+    save_matrix()
 
-    plt.plot(computation_time, 'red')
-    plt.savefig("rule" + rule + "_computation_time_r.png")
-    plt.title("rule" + rule + " computation time")
-    plt.show()
+    def show_plot():
+        plt.plot(distances_to_real_median, 'blue')
+        plt.savefig("rule" + rule + "_distances_to_real_median_r.png")
+        plt.title("rule" + rule + " distance to real median")
+        plt.show()
 
-    plt.plot(distances_to_mean, 'green')
-    plt.savefig("rule" + rule + "_distances_to_mean_r.png")
-    plt.title("rule" + rule + " distances to mean")
-    plt.show()
+        plt.plot(computation_time, 'red')
+        plt.savefig("rule" + rule + "_computation_time_r.png")
+        plt.title("rule" + rule + " computation time")
+        plt.show()
 
-    np.savetxt("./log/distances_to_real_median_r" + rule + "_a90_r.txt.gz", distances_to_real_median)
-    np.savetxt("./log/computation_time_r" + rule + "_a90_r.txt.gz", computation_time)
-    np.savetxt("./log/distances_to_mean_r" + rule + "_a90_r.txt.gz", distances_to_mean)
-    np.savetxt("./log/selected_graphs_index_r" + rule + "_a90_r.txt.gz", selected_graphs_index)
-    np.savetxt("./log/median_over_iterations_r" + rule + "_a90_r.txt.gz", median_over_iterations)
-    np.savetxt("./log/dist_g_s_r" + rule + "_a90_r.txt.gz", dist_g_s)
-    np.savetxt("./log/dist_c_s_r" + rule + "_a90_r.txt.gz", dist_c_s)
-    np.savetxt("./log/cand_prob_r" + rule + "_a90_r.txt.gz", np.array(candidate_prob))
+        plt.plot(distances_to_mean, 'green')
+        plt.savefig("rule" + rule + "_distances_to_mean_r.png")
+        plt.title("rule" + rule + " distances to mean")
+        plt.show()
 
-    fig, ax1 = plt.subplots()
-    color = 'tab:blue'
-    ax1.set_xlabel('Iteration')
-    ax1.set_ylabel('Distance to real median', color=color)
-    ax1.plot(distances_to_real_median, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
+        fig, ax1 = plt.subplots()
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    color = 'tab:red'
-    ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
-    ax2.plot(computation_time, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:red'
+        ax2.set_ylabel('Computation time', color=color)  # we already handled the x-label with ax1
+        ax2.plot(computation_time, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
 
-    ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
-    color = 'tab:green'
-    ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
-    ax3.plot(distances_to_mean, color=color)
-    ax3.tick_params(axis='y', labelcolor=color)
+        ax3 = ax1.twinx()  # instantiate a third axes that shares the same x-axis
+        color = 'tab:green'
+        ax3.set_ylabel('Distance to mean', color=color)  # we already handled the x-label with ax1
+        ax3.plot(distances_to_mean, color=color)
+        ax3.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.title("Rule " + rule + " median selection over iterations")
-    plt.show()
-    print("Median of the last step: graph n°", median_of_iteration)
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        plt.title("Rule " + rule + " median selection over iterations")
+        plt.show()
+        print("Median of the last step: graph n°", median_of_iteration)
 
-    fig, ax1 = plt.subplots()
-    color = 'tab:blue'
-    ax1.set_xlabel('Iteration')
-    ax1.set_ylabel('Distance to real median', color=color)
-    ax1.plot(distances_to_real_median, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
+        fig, ax1 = plt.subplots()
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    color = 'tab:green'
-    ax2.set_ylabel('Candidate', color=color)  # we already handled the x-label with ax1
-    ax2.plot(dist_g_s, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:green'
+        ax2.set_ylabel('Candidate', color=color)  # we already handled the x-label with ax1
+        ax2.plot(dist_g_s, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.title("Rule" + rule + " distance of selectected graph to the set")
-    plt.savefig("dist_g_s_r" + rule + "_a90_r.png")
-    plt.show()
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        plt.title("Rule" + rule + " distance of selectected graph to the set")
+        plt.savefig("dist_g_s_r" + rule + "_a90_r.png")
+        plt.show()
 
-    fig, ax1 = plt.subplots()
-    color = 'tab:blue'
-    ax1.set_xlabel('Iteration')
-    ax1.set_ylabel('Distance to real median', color=color)
-    ax1.plot(distances_to_real_median, color=color)
-    ax1.tick_params(axis='y', labelcolor=color)
+        fig, ax1 = plt.subplots()
+        color = 'tab:blue'
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Distance to real median', color=color)
+        ax1.plot(distances_to_real_median, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
 
-    ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-    color = 'tab:green'
-    ax2.set_ylabel('Distance candidate to set', color=color)  # we already handled the x-label with ax1
-    ax2.plot(dist_c_s, color=color)
-    ax2.tick_params(axis='y', labelcolor=color)
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:green'
+        ax2.set_ylabel('Distance candidate to set', color=color)  # we already handled the x-label with ax1
+        ax2.plot(dist_c_s, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
 
-    fig.tight_layout()  # otherwise the right y-label is slightly clipped
-    plt.title("Rule" + rule + " distance of candidates graph to the set")
-    plt.savefig("dist_can_s_r" + rule + "_a90_r.png")
-    plt.show()
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        plt.title("Rule" + rule + " distance of candidates graph to the set")
+        plt.savefig("dist_can_s_r" + rule + "_a90_r.png")
+        plt.show()
 
-    x = [200 * i for i in range(len(candidate_prob))]
-    fig, ax1 = plt.subplots()
-    ax1.set_title("distribution over iterations")
-    ax1.boxplot(candidate_prob)
-    ax1.set_xticklabels(x)
-    plt.xticks(rotation=90)
-    plt.yscale("log")
-    plt.savefig("distribution_over_iterations_r.png")
-    plt.show()
+        x = [200 * i for i in range(len(candidate_prob))]
+        fig, ax1 = plt.subplots()
+        ax1.set_title("distribution over iterations")
+        ax1.boxplot(candidate_prob)
+        ax1.set_xticklabels(x)
+        plt.xticks(rotation=90)
+        plt.yscale("log")
+        plt.savefig("distribution_over_iterations_r.png")
+        plt.show()
 
+    show_plot()
     return distances_matrix
 
 
@@ -460,7 +501,7 @@ def test_study_median_approximation(file_prefix="mutag_",
         np.savetxt(rule + "_" + str(cls) + ".txt.gz", distances_matrix_computed, delimiter=",")
     print("--- took %s seconds ---" % (time.time() - start_time))
 
-"""
+
 test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
                                 with_distances_matrix=True)
 
@@ -468,4 +509,4 @@ test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.t
 test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
                                 with_distances_matrix=False)
 
-
+"""
