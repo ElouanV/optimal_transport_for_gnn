@@ -1,9 +1,9 @@
 import networkx as nx
 import os, sys
 
-sys.path.append(os.path.relpath('../src/lib'))
-from graph import Graph
-from ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
+
+from lib.graph import Graph
+from lib.ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
 import numpy as np
 
 import tools
@@ -150,25 +150,7 @@ def build_graphs_from_file_shuffle(filename, nb_class=2):
     return graphs, means
 
 
-# tests
-def my_test():
-    graphs, _ = build_graphs_from_file('../activ_ego/mutag_0labels_egos.txt')
-    print("Number of graphs : " + str(len(graphs)))
-    for c in range(len(graphs)):
-        for i in range(5):
-            tools.show_graph(graphs[c][i].nx_graph, title="Graph " + str(i) + " of class: " + str(c))
 
-
-def test_debug():
-    graphs, _ = build_graphs_from_file("../activ_ego/mutag_Olabels_egos.txt")
-
-    fgw = Fused_Gromov_Wasserstein_distance(alpha=0.5, features_metric='dirac', method='shortest_path')
-    dfgw = fgw.graph_d(graphs[0][0], graphs[0][1])
-    print(dfgw)
-
-
-# test_debug()
-# my_test()
 
 
 def add_nodes_count(G, str, labels_list=mutag_labels, label_count=[], shuffle=False):

@@ -1,7 +1,7 @@
 import ot
-import FGW as fgw
 import numpy as np
 import time
+import FGW
 from graph import NoAttrMatrix
 from utils import hamming_dist
 
@@ -119,7 +119,7 @@ class Fused_Gromov_Wasserstein_distance():
             return x.reshape(-1,1)
 
     def calc_fgw(self,M,C1,C2,t1masses,t2masses):
-        transpwgw,log= fgw.fgw_lp((1-self.alpha)*M,C1,C2,t1masses,t2masses,'square_loss',G0=None,alpha=self.alpha,verbose=self.verbose,amijo=self.amijo,log=True)      
+        transpwgw,log= FGW.fgw_lp((1 - self.alpha) * M, C1, C2, t1masses, t2masses, 'square_loss', G0=None, alpha=self.alpha, verbose=self.verbose, amijo=self.amijo, log=True)
         return transpwgw,log
         
     def graph_d(self,graph1,graph2):

@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import os, sys
 import to_go_faster as tgf
 
 import parse_active

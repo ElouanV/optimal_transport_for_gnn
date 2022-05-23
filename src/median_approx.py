@@ -1,5 +1,7 @@
 import numpy as np
-from lib.ot_distances import Fused_Gromov_Wasserstein_distance
+import os,sys
+sys.path.append(os.path.relpath('lib'))
+from ot_distances import Fused_Gromov_Wasserstein_distance
 import time
 
 
@@ -95,7 +97,8 @@ def next_graph(distances, graphs_index):
     if np.inf in distances_of_selected_graph:
         raise Exception("inf in distances_of_selected_graph")
     mins = np.min(distances_of_selected_graph, axis=0)
-    return random_graph(mins), mins
+    proba = mins / np.sum(mins)
+    return random_graph(proba), mins
 
 
 def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf):

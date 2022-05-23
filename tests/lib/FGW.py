@@ -224,7 +224,7 @@ def gw_lp(C1,C2,p,q,loss_fun='square_loss',alpha=1,amijo=True,**kwargs):
     def df(G):
         return gwggrad(constC,hC1,hC2,G)
  
-    return optim.cg(p,q,M,alpha,f,df,G0,amijo=amijo,constC=constC,C1=C1,C2=C2,**kwargs)
+    return optim.cg(p, q, M, alpha, f, df, G0, amijo=amijo, constC=constC, C1=C1, C2=C2, **kwargs)
     
 def fgw_lp(M,C1,C2,p,q,loss_fun='square_loss',alpha=1,amijo=True,G0=None,**kwargs): 
     """
@@ -290,7 +290,7 @@ def fgw_lp(M,C1,C2,p,q,loss_fun='square_loss',alpha=1,amijo=True,G0=None,**kwarg
     def df(G):
         return gwggrad(constC,hC1,hC2,G)
  
-    return optim.cg(p,q,M,alpha,f,df,G0,amijo=amijo,C1=C1,C2=C2,constC=constC,**kwargs)
+    return optim.cg(p, q, M, alpha, f, df, G0, amijo=amijo, C1=C1, C2=C2, constC=constC, **kwargs)
 
 
 

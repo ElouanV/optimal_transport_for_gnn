@@ -43,7 +43,7 @@ class Graph():
            Name of the graph because life without name has no meaning. 
     """
 
-    def __init__(self, nx_graph=None, cls=0):
+    def __init__(self, nx_graph=None):
         if nx_graph is not None:
             self.nx_graph = nx.Graph(nx_graph)
         else:
@@ -55,7 +55,6 @@ class Graph():
         self.log['attridist'] = []
         self.C = None
         self.name_struct_dist = 'No struct name for now'
-        self.cls = cls
 
     def __eq__(self, other):
         return self.nx_graph == other.nx_graph
@@ -187,15 +186,8 @@ class Graph():
             self.log['allStructTime'] = (end - start)
             return self.C
 
-
-
-
-
-
-
-
     def all_matrix_attr(self, return_invd=False):
-        d = dict((k, v) for k, v in self.nx_graph.nodes.items()) # modified node to nodes()
+        d = dict((k, v) for k, v in self.nx_graph.nodes.items())
         x = []
         invd = {}
         try:
@@ -337,7 +329,7 @@ def wl_labeling(graph, h=2, tohash=True):
             long_label_string = ''.join([str(x) for x in long_label])
             # print('Type_labels before',type(labels))
             new_labels[v] = long_label_string
-            # print('Type_labels after',type(labels))
+        # print('Type_labels after',type(labels))
 
         labels = np.array(copy.deepcopy(new_labels))
 
