@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import time
 import sys, os
-sys.path.append(os.path.relpath('../src/lib'))
+sys.path.append(os.path.relpath('../src/fgw_ot'))
 from ot_distances import Fused_Gromov_Wasserstein_distance
 
 

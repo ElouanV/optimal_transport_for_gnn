@@ -2,12 +2,12 @@ import numpy as np
 import os, sys
 import math
 
-sys.path.append(os.path.relpath('../src/lib'))
+sys.path.append(os.path.relpath('../src/fgw_ot'))
 from ego_barycenter import compute_barycenter
-from src.lib.graph import Graph
+from src.fgw_ot.graph import Graph
 import parse_active
 import tools
-from src.lib.ot_distances import Fused_Gromov_Wasserstein_distance
+from src.fgw_ot.ot_distances import Fused_Gromov_Wasserstein_distance
 import time
 
 path_to_data = "../activ_ego/"

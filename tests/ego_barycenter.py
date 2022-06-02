@@ -1,10 +1,10 @@
 import numpy as np
 import os, sys
 
-sys.path.append(os.path.relpath('../src/lib'))
-from src.lib.graph import find_thresh, sp_to_adjency
+sys.path.append(os.path.relpath('../src/fgw_ot'))
+from src.fgw_ot.graph import find_thresh, sp_to_adjency
 import networkx as nx
-from src.lib.FGW import fgw_barycenters
+from src.fgw_ot.FGW import fgw_barycenters
 import test_toys_graph as tools
 import parse_active
 import time

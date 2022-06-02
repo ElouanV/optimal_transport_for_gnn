@@ -1,8 +1,9 @@
 import numpy as np
-import os,sys
-sys.path.append(os.path.relpath('lib'))
+import sys,os
+sys.path.append(os.path.relpath('fgw_ot'))
 from ot_distances import Fused_Gromov_Wasserstein_distance
 import time
+from tqdm import tqdm
 
 
 def graph_distance(graph1, graph2, alpha=0.9):
@@ -50,13 +51,14 @@ def distances_src_to_many(graphs, src, distances_matrix, alpha=0.9):
     -------
     None
     '''
-    for i in range(src):
+    for i in range(len(graphs)):
+        print("Computing distance from graph {} to graph {}".format(src, i))
+        print("Number of nodes: g1 {} g2 {}".format(graphs[src].nx_graph.number_of_nodes(), graphs[i].nx_graph.number_of_nodes()))
         if distances_matrix[src, i] != np.inf:
             continue
-        distances_matrix[src, i] = distances_matrix[i, src] = graph_distance(graphs[i], graphs[src], alpha)
-    distances_matrix[src, src] = 0
-    for i in range(src + 1, len(graphs)):
-        distances_matrix[src, i] = distances_matrix[i, src] = graph_distance(graphs[src], graphs[i], alpha)
+        distances_matrix[src, i] = graph_distance(graphs[src], graphs[i], alpha)
+        distances_matrix[i, src] = graph_distance(graphs[i], graphs[src], alpha)
+        print("Distances computed: {} and {}".format(distances_matrix[src, i], distances_matrix[i, src]))
 
 
 def g_median(distances, graphs_index=None):
@@ -114,7 +116,7 @@ def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf):
     -------
     Graph: the median graph approximation
     '''
-
+    print("Median_approximation call")
     selected_graph_index = []
     n = len(graphs)
     distances_matrix = np.full((n, n), np.inf)
@@ -122,16 +124,17 @@ def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf):
 
     start_time = time.time()
     selected_graph_index.append(np.random.randint(0, len(graphs)))
+    print("Median_approximation call: first graph selected, compute the distances")
     distances_src_to_many(graphs, selected_graph_index[0], distances_matrix, alpha=alpha)
-
-    for i in range(1, min(n, max_iteration)):
+    print("Start median loop")
+    for i in tqdm(range(1, min(n, max_iteration))):
         new, cand = next_graph(distances_matrix, selected_graph_index)
         distances_src_to_many(graphs, new, distances_matrix, alpha)
         dist_g_s[i] = cand[new]
         selected_graph_index.append(new)
         if i % 10 == 0 and np.sum(dist_g_s[i - 10:i] < t) == 10:
             break
-
-    median = graphs[g_median(distances_matrix, selected_graph_index)]
+    median_index = g_median(distances_matrix, selected_graph_index)
+    median = graphs[median_index]
     print("--- took %s seconds ---" % (time.time() - start_time))
-    return median
+    return median, median_index

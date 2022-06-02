@@ -3,7 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import os, sys
 
-sys.path.append(os.path.relpath('../src/lib'))
+sys.path.append(os.path.relpath('../src/fgw_ot'))
 from graph import draw_transp, Graph
 from ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
 from data_loader import load_local_data

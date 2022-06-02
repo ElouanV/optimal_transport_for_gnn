@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os, sys
 import math
 
-sys.path.append(os.path.relpath('../src/lib'))
+sys.path.append(os.path.relpath('../src/fgw_ot'))
 import parse_active
 import tools
 from ot_distances import Fused_Gromov_Wasserstein_distance

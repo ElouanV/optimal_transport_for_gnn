@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import os
-from src.lib.graph import Graph
+from src.fgw_ot.graph import Graph
 
 
 
