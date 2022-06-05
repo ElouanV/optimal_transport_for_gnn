@@ -63,11 +63,14 @@ def median_from_json(path, filename, name):
             print("|__Computing graph for {} {}".format(key, i))
             graphs = []  # list of Graphs
             for graph_list in val[i]:
+                # graph_list[0] is the ID of the graph
+                # graph_list[1] is edge_index of the graph
+                # graph_list[2] is features_matrix of the graph
                 new_nx = nx.Graph()
                 new_nx.add_node(0)
-                edge_index = graph_list[0]
+                edge_index = graph_list[1]
                 add_edges(new_nx, edge_index)
-                features_matrix = np.array(graph_list[1])
+                features_matrix = np.array(graph_list[2])
                 add_features_from_matrix(new_nx, features_matrix)
                 new_graph = Graph()
                 new_graph.nx_graph = new_nx
@@ -87,4 +90,5 @@ def median_from_json(path, filename, name):
         out.write(json_str)
 
 
-median_from_json("/home/elouan/lrde/optimal_transport/optimal_transport_for_gnn/src/json/", "aids_support.json", name="aids_support")
+median_from_json("/home/elouan/epita/lrde/optimal_transport_for_gnn/src/json/", "aids_beam_support.json",
+                 name="aids_beam_support")

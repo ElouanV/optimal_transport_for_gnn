@@ -489,14 +489,16 @@ def test_study_median_approximation(file_prefix="mutag_",
                                     with_distances_matrix=False):
     start_time = time.time()
     filename = path_to_data + file_prefix + rule + file_suffix
-    distances_matrix = tgf.load_matrix_from_txt("../../distances_matrix/", rule, cls, suff=".txt")
+    #distances_matrix = tgf.load_matrix_from_txt("../../distances_matrix/", rule, cls, suff=".txt")
     graphs, _ = parse_active.build_graphs_from_file(filename)
     print("Computing rules " + rule + " class " + "0" + "...")
-    real_median = find_real_median(distances_matrix)
+    #real_median = find_real_median(distances_matrix)
+    real_median = 3047
+    distances_matrix = None
     if with_distances_matrix:
-
-        study_median_approximation_with_matrix(graphs[cls], real_median, distances_matrix, alpha=alpha, rule=rule)
-        print("Real median: " + str(real_median))
+        return None
+        #study_median_approximation_with_matrix(graphs[cls], real_median, distances_matrix, alpha=alpha, rule=rule)
+        #print("Real median: " + str(real_median))
     else:
         distances_matrix_computed = study_median_approximation(graphs[cls], real_median, alpha=alpha, rule=rule,
                                                                distances_matrix_r=distances_matrix)
@@ -510,10 +512,7 @@ def test_study_median_approximation(file_prefix="mutag_",
     print("--- took %s seconds ---" % (time.time() - start_time))
 
 
-test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
-                                with_distances_matrix=True)
-'''
+
 test_study_median_approximation(file_prefix="mutag_", file_suffix="labels_egos.txt", alpha=0.9, rule="23",
                                 with_distances_matrix=False)
 
-'''
