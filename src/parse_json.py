@@ -90,5 +90,5 @@ def median_from_json(path, filename, name):
         out.write(json_str)
 
 
-median_from_json("/home/elouan/epita/lrde/optimal_transport_for_gnn/src/json/", "aids_beam_support.json",
-                 name="aids_beam_support")
+median_from_json("/home/elouan/epita/lrde/optimal_transport_for_gnn/src/json/", "aids_ex_support.json",
+                 name="aids_ex_support")

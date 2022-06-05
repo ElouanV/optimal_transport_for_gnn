@@ -3,7 +3,6 @@ import os, sys
 
 
 from lib.graph import Graph
-from lib.ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
 import numpy as np
 
 import tools
