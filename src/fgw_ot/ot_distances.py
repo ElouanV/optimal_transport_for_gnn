@@ -1,9 +1,9 @@
 import ot
 import numpy as np
 import time
-import FGW
-from graph import NoAttrMatrix
-from utils import hamming_dist
+import fgw_ot.FGW as FGW
+from fgw_ot.graph import NoAttrMatrix
+from fgw_ot.utils import hamming_dist
 
 """
 The following classes adapt the OT distances to Graph objects

@@ -13,6 +13,7 @@ atoms_mutag = {0: "C", 1: "O", 2: "Cl", 3: "H", 4: "N", 5: "F", 6: "Br", 7: "S",
 BBBPs = ["C", "N", "O", "S", "P", "BR", "B", "F", "CL", "I", "H", "NA", "CA"]
 features_dict = atoms_aids
 
+
 def add_edges(graph, edge_index):
     """
 
@@ -45,10 +46,13 @@ def add_features_from_matrix(graph, features_matrix, dict_features=features_dict
     for i in range(features_matrix.shape[0]):  # for each node
         for j in range(features_matrix.shape[1]):  # for each feature
             if features_matrix[i][j] == 1:
-                graph.nodes[i]['attr_name'] = dict_features[j]
+                try:
+                    graph.nodes[i]['attr_name'] = dict_features[j]
+                except (KeyError):
+                    print(i, " ")
 
 
-def median_from_json(path, filename):
+def median_from_json(path, filename, name):
     with open(path + filename) as json_file:
         data = json.load(json_file)
     res_dict = {}
@@ -56,10 +60,11 @@ def median_from_json(path, filename):
         print("Computing graph for {}".format(key))
         list__of_median = []
         for i in range(len(val)):
-            print("Computing graph for {} {}".format(key, i))
+            print("|__Computing graph for {} {}".format(key, i))
             graphs = []  # list of Graphs
             for graph_list in val[i]:
                 new_nx = nx.Graph()
+                new_nx.add_node(0)
                 edge_index = graph_list[0]
                 add_edges(new_nx, edge_index)
                 features_matrix = np.array(graph_list[1])
@@ -67,14 +72,19 @@ def median_from_json(path, filename):
                 new_graph = Graph()
                 new_graph.nx_graph = new_nx
                 graphs.append(new_graph)
-        # Compute the median graph of the graph list
-            print('Computing median graph of {} graphs'.format(len(graphs)))
-
+            # Compute the median graph of the graph list
+            print('   |__Computing median graph of {} graphs'.format(len(graphs)))
             median, median_index = median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf)
-            list__of_median.append(val[median_index])
+            list__of_median.append(val[i][median_index])
+
+            json_str = json.dumps({key: val[i][median_index]})
+            with open("log/median_" + name + str(key[1]) + "_" + str(key[4]) + "_" + str(i) + ".json", 'w+') as out:
+                out.write(json_str)
             print("key: ", key, "i: ", i, "median: ", median_index)
         res_dict[key] = list__of_median
-    json.save(res_dict, 'median_' + filename + '.json')
+    json_str = json.dumps(res_dict)
+    with open('median_' + name + '.json', 'w+') as out:
+        out.write(json_str)
 
 
-median_from_json("/home/elouan/epita/lrde/optimal_transport_for_gnn/src/json/", "aids_support.json")
+median_from_json("/home/elouan/lrde/optimal_transport/optimal_transport_for_gnn/src/json/", "aids_support.json", name="aids_support")

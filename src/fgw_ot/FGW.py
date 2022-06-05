@@ -2,9 +2,9 @@
 
 import numpy as np
 import ot
-import optim
-from utils import dist,reshaper
-from bregman import sinkhorn_scaling
+import fgw_ot.optim as optim
+from fgw_ot.utils import dist,reshaper
+from fgw_ot.bregman import sinkhorn_scaling
 from scipy import stats
 from scipy.sparse import random
 
