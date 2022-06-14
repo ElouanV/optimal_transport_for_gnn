@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import sys,os
 
@@ -96,6 +97,9 @@ def next_graph(distances, graphs_index):
     if np.inf in distances_of_selected_graph:
         raise Exception("inf in distances_of_selected_graph")
     mins = np.min(distances_of_selected_graph, axis=0)
+    sum = np.sum(mins)
+    if sum == 0:
+        raise ValueError("sum of probability equal to 0")
     proba = mins / np.sum(mins)
     return random_graph(proba), mins
 
@@ -122,7 +126,10 @@ def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf):
     selected_graph_index.append(np.random.randint(0, len(graphs)))
     distances_src_to_many(graphs, selected_graph_index[0], distances_matrix, alpha=alpha)
     for i in tqdm(range(1, min(n, max_iteration))):
-        new, cand = next_graph(distances_matrix, selected_graph_index)
+        try:
+            new, cand = next_graph(distances_matrix, selected_graph_index)
+        except ValueError:
+            break
         distances_src_to_many(graphs, new, distances_matrix, alpha)
         dist_g_s[i] = cand[new]
         selected_graph_index.append(new)

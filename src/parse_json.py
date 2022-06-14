@@ -4,6 +4,7 @@ import numpy as np
 from fgw_ot.graph import Graph
 from median_approx import median_approximation
 
+
 atoms_aids = {0: "C", 1: "O", 2: "N", 3: "Cl", 4: "F", 5: "S", 6: "Se", 7: "P", 8: "Na", 9: "I", 10: "Co", 11: "Br",
               12: "Li", 13: "Si", 14: "Mg", 15: "Cu", 16: "As", 17: "B", 18: "Pt", 19: "Ru", 20: "K", 21: "Pd",
               22: "Au", 23: "Te", 24: "W", 25: "Rh", 26: "Zn", 27: "Bi", 28: "Pb", 29: "Ge", 30: "Sb", 31: "Sn",
@@ -47,7 +48,7 @@ def add_features_from_matrix(graph, features_matrix, dict_features=features_dict
         for j in range(features_matrix.shape[1]):  # for each feature
             if features_matrix[i][j] == 1:
                 try:
-                    graph.nodes[i]['attr_name'] = dict_features[j]
+                    graph.nodes[i]['attr_name'] = j
                 except (KeyError):
                     print(i, " ")
 
@@ -90,5 +91,7 @@ def median_from_json(path, filename, name):
         out.write(json_str)
 
 
-median_from_json("/home/elouan/epita/lrde/optimal_transport_for_gnn/src/json/", "aids_ex_support.json",
-                 name="aids_ex_support")
+median_from_json("/home/elouan/epita/lrde/optimal_transport_for_gnn/src/json/", "aids_beam_support.json",
+                 name="aids_beam_support")
+
+
