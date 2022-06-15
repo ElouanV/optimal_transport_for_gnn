@@ -58,10 +58,10 @@ def median_from_json(path, filename, name):
         data = json.load(json_file)
     res_dict = {}
     for (key, val) in data.items():
-        print("Computing graph for {}".format(key))
+        print("Computing {}".format(key))
         list__of_median = []
         for i in range(len(val)):
-            print("|__Computing graph for {} {}".format(key, i))
+            print("|__Parsing graphs for {} {}".format(key, i))
             graphs = []  # list of Graphs
             for graph_list in val[i]:
                 # graph_list[0] is the ID of the graph

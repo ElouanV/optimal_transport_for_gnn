@@ -129,6 +129,7 @@ def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf):
         try:
             new, cand = next_graph(distances_matrix, selected_graph_index)
         except ValueError:
+            print("\033[1;32m Median approximation stopped \033[0m")
             break
         distances_src_to_many(graphs, new, distances_matrix, alpha)
         dist_g_s[i] = cand[new]

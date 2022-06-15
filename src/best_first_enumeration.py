@@ -8,8 +8,10 @@ from torch_geometric.utils import dense_to_sparse
 import copy
 from ExplanationEvaluation.datasets.dataset_loaders import load_dataset
 from utils import RuleEvaluator, get_atoms
+from tools import show_graph
 
 Number_of_rules = dict([("aids", 60), ('mutag', 60), ("BBBP", 60), ("PROTEINS_full", 28), ("DD", 47), ("ba2", 19)])
+
 
 def explore_graph(dataset, target_class):
     """
@@ -44,7 +46,7 @@ def explore_graph(dataset, target_class):
         if dataset == "PROTEINS_full":
             edge_probs = get_edge_distribution(graphs, features, labels, 30)
     model, checkpoint = model_selector("GNN", dataset, pretrained=True, return_checkpoint=True)
-    metrics = ["cosine"] # "entropy", "likelyhood_max"
+    metrics = ["cosine"]  # "entropy", "likelyhood_max"
     atoms = get_atoms(dataset, features)
     real_ratio = {"cosine": (0, 1),
                   "entropy": (-50, -2.014),
@@ -55,10 +57,10 @@ def explore_graph(dataset, target_class):
     rules = range(Number_of_rules[dataset])
 
     scores = list()
-    x12 = OTBFEExplainer(model,(graphs, features, labels), target_class,dataset_name = dataset, target_metric="cosine", edge_probs=edge_probs)
+    x12 = OTBFEExplainer(model, (graphs, features, labels), target_class, dataset_name=dataset, target_metric="cosine",
+                         edge_probs=edge_probs)
 
     # Save the graph, or display it, or return it
-
 
 
 class OTBFEExplainer:
@@ -136,29 +138,30 @@ class OTBFEExplainer:
           '''
         return score, (metric_value, real_value)
 
+    def best_first_enumeration(self, graph_old, layer):
 
-def best_first_enumeration(self, graph_old, layer):
-    ''' add end condition (maybe at the end of this function
-    if score < best score:
-        return best_graph
-    '''
-    graph = copy.deepcopy(graph_old)
+        ''' add end condition (maybe at the end of this function
+        if score < best score:
+            return best_graph
+        '''
+        graph = copy.deepcopy(graph_old)
 
-    index = graph.number_of_nodes()
+        index = graph.number_of_nodes()
 
-    while True:
-        subgraphs = []
-        nodes = nx.nodes(graph)
-        scores = np.zeros(len(nodes))
-        for i in range(len(nodes)):
-            subgraph_nodes = [nodes[j] for j in range(len(nodes)) if j != i]
-            subgraphs.append(nx.induced_subgraph(subgraph_nodes))
-            scores[i] = self.compute_score(graph)
+        while True:
+            subgraphs = []
+            nodes = nx.nodes(graph)
+            scores = np.zeros(len(nodes))
+            for i in range(len(nodes)):
+                subgraph_nodes = [nodes[j] for j in range(len(nodes)) if j != i]
+                subgraphs.append(nx.induced_subgraph(subgraph_nodes))
+                scores[i] = self.compute_score(graph)
 
-        best_first = subgraphs[np.argmax(scores)]
-        best_score = np.max(scores)
-        if best_score > self.best_score:
-            graph = best_first
-            self.best_score = best_score
-        else:
-            break
+            best_first = subgraphs[np.argmax(scores)]
+            best_score = np.max(scores)
+            if best_score > self.best_score:
+                graph = best_first
+                self.best_score = best_score
+            else:
+                break
+        show_graph(best_first)
