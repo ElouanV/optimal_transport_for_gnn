@@ -85,6 +85,7 @@ class RuleEvaluator:
             indices = []
             labels = networkx.get_node_attributes(graph, 'label')
             for node in graph.nodes():
+
                 index = next(filter(lambda x: self.atoms[x] == labels[node], self.atoms.keys()))
                 indices.append(index)
 

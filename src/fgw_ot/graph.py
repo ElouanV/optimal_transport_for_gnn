@@ -99,8 +99,8 @@ class Graph():
         (vertex1, vertex2) = tuple(edge)
         self.nx_graph.add_edge(vertex1, vertex2)
 
-    def add_one_attribute(self, node, attr, attr_name='attr_name'):
-        self.nx_graph.add_node(node, attr_name=attr)
+    def add_one_attribute(self, node, attr, attr_name='label'):
+        self.nx_graph.add_node(node, label=attr)
 
     def add_attributes(self, attributes):
         attributes = dict(attributes)

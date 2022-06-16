@@ -2,7 +2,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import os
-from src.fgw_ot.graph import Graph
+from fgw_ot.graph import Graph
 
 
 
@@ -18,8 +18,8 @@ def show_graph(G, name="graphs", layout='random', title='Graph', labeled=False, 
         pos = nx.circular_layout(G)
     if layout == 'kamada_kawai':
         pos = nx.kamada_kawai_layout(G)
-    nx.draw_networkx(G, pos, with_labels=False, font_weight='bold')
-    labels = nx.get_edge_attributes(G, 'attr_name')
+    nx.draw_networkx(G, pos, with_labels=True, font_weight='bold')
+    labels = nx.get_edge_attributes(G, 'label')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
     labels = nx.get_node_attributes(G, attr_name)
     nx.draw_networkx_labels(G, pos, labels, font_size=16, font_color="whitesmoke")

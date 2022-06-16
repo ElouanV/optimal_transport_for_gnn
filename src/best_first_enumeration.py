@@ -49,6 +49,8 @@ def explore_graph(dataset, target_class, graph, target_rule=23):
     else:
         if dataset == "PROTEINS_full":
             edge_probs = get_edge_distribution(graphs, features, labels, 30)
+        else:
+            edge_probs = get_edge_distribution(graphs, features, labels)
     model, checkpoint = model_selector("GNN", dataset, pretrained=True, return_checkpoint=True)
     metrics = ["cosine"]  # "entropy", "likelyhood_max"
     atoms = get_atoms(dataset, features)
@@ -70,7 +72,7 @@ def explore_graph(dataset, target_class, graph, target_rule=23):
     return graph
 
 class OTBFEExplainer:
-    def __init(self, model_to_explain, dataset, target_class, dataset_name, target_rule=None, target_metric="sum",
+    def __init__(self, model_to_explain, dataset, target_class, dataset_name, target_rule=None, target_metric="sum",
                edge_probs=None):
         """
 
@@ -126,7 +128,7 @@ class OTBFEExplainer:
         return one_hot(index_tensor, len(self.atoms.keys()))
 
     def compute_score(self, graph, emb=None):
-        metric_value, real_value = -1
+        metric_value=  real_value = -1
         if not self.target_rule:
             X = self.compute_feature_matrix(graph).type(torch.float32)
             A = torch.from_numpy(nx.convert_matrix.to_numpy_array(graph))
@@ -148,15 +150,16 @@ class OTBFEExplainer:
         graph = copy.deepcopy(graph_old)
 
         index = graph.number_of_nodes()
-
+        initial_score = self.compute_score(graph_old)[0]
         while True:
             subgraphs = []
             nodes = nx.nodes(graph)
             scores = np.zeros(len(nodes))
             for i in range(len(nodes)):
-                subgraph_nodes = [nodes[j] for j in range(len(nodes)) if j != i]
-                subgraphs.append(nx.induced_subgraph(subgraph_nodes))
-                scores[i] = self.compute_score(graph)
+                subgraph_nodes = [x for j,x in enumerate(nodes) if j != i]
+                subgraphs.append(nx.subgraph(graph,subgraph_nodes))
+                score_g = self.compute_score(subgraphs[-1])
+                scores[i] = score_g[0]
 
             best_first = subgraphs[np.argmax(scores)]
             best_score = np.max(scores)
@@ -165,7 +168,7 @@ class OTBFEExplainer:
                 self.best_score = best_score
             else:
                 break
-        return graph
+        return graph, best_score, initial_score
 
 
 # test
@@ -176,4 +179,7 @@ graphs, _ = parse_active.build_graphs_from_file("../activ_ego/aids_21labels_egos
 
 median = graphs[0][1484].nx_graph
 
-explainer = explore_graph('aids', 0, median, target_rule=23)
+explainer, best_score, initial_score = explore_graph('aids', 0, median, target_rule=23)
+show_graph(median)
+show_graph(explainer)
+print("Best score: ", best_score, " Initial score: ", initial_score)

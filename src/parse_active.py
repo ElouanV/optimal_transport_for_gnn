@@ -1,7 +1,6 @@
 import networkx as nx
 import os, sys
 
-
 from fgw_ot.graph import Graph
 from fgw_ot.ot_distances import Fused_Gromov_Wasserstein_distance, Wasserstein_distance
 import numpy as np
@@ -9,8 +8,12 @@ import numpy as np
 import tools
 
 mutag_labels = ["C", "O", "Cl", "H", "N", "F", "Br", "S", "P", "I", "Na", "K", "Li", "Ca"]
-aids_labels = []
+
 shuffle_labels = [13, 4, 10, 0, 6, 9, 7, 1, 2, 5, 11, 8, 3, 12]
+atoms_aids = {0: "C", 1: "O", 2: "N", 3: "Cl", 4: "F", 5: "S", 6: "Se", 7: "P", 8: "Na", 9: "I", 10: "Co", 11: "Br",
+              12: "Li", 13: "Si", 14: "Mg", 15: "Cu", 16: "As", 17: "B", 18: "Pt", 19: "Ru", 20: "K", 21: "Pd",
+              22: "Au", 23: "Te", 24: "W", 25: "Rh", 26: "Zn", 27: "Bi", 28: "Pb", 29: "Ge", 30: "Sb", 31: "Sn",
+              32: "Ga", 33: "Hg", 34: "Ho", 35: "Tl", 36: "Ni", 37: "Tb"}
 
 
 def add_edges(G, str):
@@ -18,15 +21,15 @@ def add_edges(G, str):
     G.add_edge((int(tokens[1]), int(tokens[2])))
 
 
-def add_nodes(G, str, labels_list=mutag_labels):
+def add_nodes(G, str, labels_list=atoms_aids):
     tokens = str.split(" ")
     nb_nodes = int(tokens[1])
     label_int = int(tokens[2])
     if label_int >= 100:
         # It's the center of the ego-graph
         label_int -= 100
-    # label = labels_list[label_int]
-    label = label_int
+    label = labels_list[label_int]
+
     G.add_attributes({nb_nodes: label})
 
 
@@ -150,9 +153,6 @@ def build_graphs_from_file_shuffle(filename, nb_class=2):
     return graphs, means
 
 
-
-
-
 def add_nodes_count(G, str, labels_list=mutag_labels, label_count=[], shuffle=False):
     '''
     a copy of add_nodes, but it count the number of nodes of each label
@@ -219,7 +219,8 @@ def build_graphs_from_file_count_labels(filename, nb_class=2, labels_list=mutag_
             elif line[0] == 'v':
                 nbnodes_cls[graph_class] += 1
                 if shuffle:
-                    label_count = add_nodes_count(g, line, labels_list=labels_list, label_count=label_count,shuffle=True)
+                    label_count = add_nodes_count(g, line, labels_list=labels_list, label_count=label_count,
+                                                  shuffle=True)
                 else:
                     label_count = add_nodes_count(g, line, label_count=label_count, labels_list=labels_list)
             else:
