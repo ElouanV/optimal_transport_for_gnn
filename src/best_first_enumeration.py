@@ -7,13 +7,17 @@ from torch.nn.functional import one_hot, softmax
 from torch_geometric.utils import dense_to_sparse
 import copy
 from ExplanationEvaluation.datasets.dataset_loaders import load_dataset
+from ExplanationEvaluation.explainers.utils import RuleEvaluator, get_atoms
+from ExplanationEvaluation.explainers.utils import get_edge_distribution
+from ExplanationEvaluation.models.model_selector import model_selector
+
 from utils import RuleEvaluator, get_atoms
 from tools import show_graph
 
 Number_of_rules = dict([("aids", 60), ('mutag', 60), ("BBBP", 60), ("PROTEINS_full", 28), ("DD", 47), ("ba2", 19)])
 
 
-def explore_graph(dataset, target_class):
+def explore_graph(dataset, target_class, graph, target_rule=23):
     """
 
     Parameters
@@ -57,11 +61,13 @@ def explore_graph(dataset, target_class):
     rules = range(Number_of_rules[dataset])
 
     scores = list()
-    x12 = OTBFEExplainer(model, (graphs, features, labels), target_class, dataset_name=dataset, target_metric="cosine",
+    x12 = OTBFEExplainer(model, (graphs, features, labels), target_class, dataset_name=dataset, target_rule=target_rule,
+                         target_metric="cosine",
                          edge_probs=edge_probs)
-
+    graph = x12.best_first_enumeration(graph)
     # Save the graph, or display it, or return it
 
+    return graph
 
 class OTBFEExplainer:
     def __init(self, model_to_explain, dataset, target_class, dataset_name, target_rule=None, target_metric="sum",
@@ -89,6 +95,7 @@ class OTBFEExplainer:
         self.graph = None  # replace it by the median graph of the dataset
 
         self.target_class = target_class
+        self.target_rule = target_rule
         self.dataset_name = dataset_name
         self.target_metric = target_metric
         self.unlabeled = True if dataset_name == "ba2" else False
@@ -101,7 +108,7 @@ class OTBFEExplainer:
             self.edge_probs = {"edge_prob": edge, "degre_prob": degre}
         self.nodes_type = len(self.atoms)
         self.rule_evaluator = RuleEvaluator(self.gnnNets, dataset_name, dataset, target_rule, target_metric,
-                                            unlabeld=self.unlabeled, edge_probs=self.edge_probs)
+                                            unlabeled=self.unlabeled, edge_probs=self.edge_probs)
 
         self.best_score = [0]
         self.step_score = [0]
@@ -126,22 +133,16 @@ class OTBFEExplainer:
             A = dense_to_sparse(A)[0]
             score = softmax(self.gnnNets(X, A)[0], 0)[self.target_class].item()
             score_all = dict()
-        '''else: # see later
+        else:  # see later
             if emb is not None:
-                score_all = self.rule_evaluator.compute_score_emb(emb)
+                score = self.rule_evaluator.compute_score_emb(emb)
             else:
-                score_all = self.rule_evaluator.compute_score(graph)
-            if self.dataset == "ba2":
-                score = score_all # modify it
-            else:
-                real = self.rule_evaluator.real_score(graph)
-          '''
+                score = self.rule_evaluator.compute_score(graph)
         return score, (metric_value, real_value)
 
-    def best_first_enumeration(self, graph_old, layer):
-
+    def best_first_enumeration(self, graph_old):
         ''' add end condition (maybe at the end of this function
-        if score < best score:
+            if score < best score:
             return best_graph
         '''
         graph = copy.deepcopy(graph_old)
@@ -164,4 +165,15 @@ class OTBFEExplainer:
                 self.best_score = best_score
             else:
                 break
-        show_graph(best_first)
+        return graph
+
+
+# test
+
+import parse_active
+
+graphs, _ = parse_active.build_graphs_from_file("../activ_ego/aids_21labels_egos.txt")
+
+median = graphs[0][1484].nx_graph
+
+explainer = explore_graph('aids', 0, median, target_rule=23)
