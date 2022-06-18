@@ -104,7 +104,7 @@ def next_graph(distances, graphs_index):
     return random_graph(proba), mins
 
 
-def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf):
+def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf, debug=False):
     '''
     approximate the median graph of the collection
     Parameters
@@ -125,18 +125,24 @@ def median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf):
     start_time = time.time()
     selected_graph_index.append(np.random.randint(0, len(graphs)))
     distances_src_to_many(graphs, selected_graph_index[0], distances_matrix, alpha=alpha)
+    nb_it = n
     for i in tqdm(range(1, min(n, max_iteration))):
         try:
             new, cand = next_graph(distances_matrix, selected_graph_index)
+
         except ValueError:
             print("\033[1;32m Median approximation stopped \033[0m")
+            nb_it = i
             break
         distances_src_to_many(graphs, new, distances_matrix, alpha)
         dist_g_s[i] = cand[new]
         selected_graph_index.append(new)
         if i % 10 == 0 and np.sum(dist_g_s[i - 10:i] < t) == 10:
+            nb_it = i
             break
     median_index = g_median(distances_matrix, selected_graph_index)
     median = graphs[median_index]
     print("--- took %s seconds ---" % (time.time() - start_time))
+    if debug:
+        return median, median_index, nb_it
     return median, median_index

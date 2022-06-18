@@ -17,7 +17,7 @@ from tools import show_graph
 Number_of_rules = dict([("aids", 60), ('mutag', 60), ("BBBP", 60), ("PROTEINS_full", 28), ("DD", 47), ("ba2", 19)])
 
 
-def explore_graph(dataset, target_class, graph, target_rule=23):
+def explore_graph(dataset, target_class, graph, target_rule=0):
     """
 
     Parameters
@@ -26,23 +26,8 @@ def explore_graph(dataset, target_class, graph, target_rule=23):
 
     Returns
     -------
-
+    the subgraph with the best score
     """
-    '''parent_score = 0  # Use metrics to know
-    while True:
-        subgraphs = []
-        nodes = nx.nodes(graph)
-        scores = np.zeros(len(nodes))
-        for i in range(len(nodes)):
-            subgraph_nodes = [nodes[j] for j in range(len(nodes)) if j != i]
-            subgraphs.append(nx.induced_subgraph(subgraph_nodes))
-        # Use cosine, ce or rce to fill score array
-        best_first = subgraphs[np.argmax(scores)]
-        best_score = np.max(scores)
-        if best_score > parent_score:
-            graph = best_first
-        else:
-            break'''
     graphs, features, labels, _, _, _ = load_dataset(dataset)
     if dataset == "ba2":
         edge_probs = None
@@ -169,17 +154,3 @@ class OTBFEExplainer:
             else:
                 break
         return graph, best_score, initial_score
-
-
-# test
-
-import parse_active
-
-graphs, _ = parse_active.build_graphs_from_file("../activ_ego/aids_21labels_egos.txt")
-
-median = graphs[0][1484].nx_graph
-
-explainer, best_score, initial_score = explore_graph('aids', 0, median, target_rule=23)
-show_graph(median)
-show_graph(explainer)
-print("Best score: ", best_score, " Initial score: ", initial_score)

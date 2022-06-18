@@ -6,7 +6,7 @@ from fgw_ot.graph import Graph
 
 
 
-def show_graph(G, name="graphs", layout='random', title='Graph', labeled=False, attr_name='attr_name', save=False,
+def show_graph(G, name="graphs", layout='kamada_kawai', title='Graph', labeled=False, attr_name='label', save=False,
                path="./"):
     if layout == 'random':
         pos = nx.random_layout(G)
@@ -18,7 +18,7 @@ def show_graph(G, name="graphs", layout='random', title='Graph', labeled=False, 
         pos = nx.circular_layout(G)
     if layout == 'kamada_kawai':
         pos = nx.kamada_kawai_layout(G)
-    nx.draw_networkx(G, pos, with_labels=True, font_weight='bold')
+    nx.draw_networkx(G, pos, with_labels=False, font_weight='bold')
     labels = nx.get_edge_attributes(G, 'label')
     nx.draw_networkx_edge_labels(G, pos, edge_labels=labels)
     labels = nx.get_node_attributes(G, attr_name)
