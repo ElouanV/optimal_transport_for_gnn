@@ -11,7 +11,6 @@ from ExplanationEvaluation.explainers.utils import RuleEvaluator, get_atoms
 from ExplanationEvaluation.explainers.utils import get_edge_distribution
 from ExplanationEvaluation.models.model_selector import model_selector
 
-from utils import RuleEvaluator, get_atoms
 from tools import show_graph
 
 Number_of_rules = dict([("aids", 60), ('mutag', 60), ("BBBP", 60), ("PROTEINS_full", 28), ("DD", 47), ("ba2", 19)])
