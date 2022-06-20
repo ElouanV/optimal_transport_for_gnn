@@ -114,8 +114,9 @@ def explore_from_json(path, filename, dataset_name):
     # parse nx_graph to edge_index & feature matrix
     new_features_matrix = features_matrix[explored_graph.nodes()]
     new_edge_index = nx.generate_edgelist(explored_graph, data=False)
-    dict_out = {}
-    json_str = json.dump(dict_out)
+
+    json_str = json.dumps((new_edge_index, new_features_matrix))
+
     with open('explored_' + filename.split('.')[0] + '.json', 'w+') as out:
         out.write(json_str)
 
