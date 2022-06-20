@@ -3,7 +3,7 @@ import networkx as nx
 import numpy as np
 from fgw_ot.graph import Graph
 from median_approx import median_approximation
-
+from best_first_enumeration import explore_graph
 
 atoms_aids = {0: "C", 1: "O", 2: "N", 3: "Cl", 4: "F", 5: "S", 6: "Se", 7: "P", 8: "Na", 9: "I", 10: "Co", 11: "Br",
               12: "Li", 13: "Si", 14: "Mg", 15: "Cu", 16: "As", 17: "B", 18: "Pt", 19: "Ru", 20: "K", 21: "Pd",
@@ -53,7 +53,10 @@ def add_features_from_matrix(graph, features_matrix, dict_features=features_dict
                     print(i, " ")
 
 
-def median_from_json(path, filename, name):
+def from_graph_to_edge_and_feature(graph):
+    return None
+
+def median_from_json(path, filename, name, dataset):
     with open(path + filename) as json_file:
         data = json.load(json_file)
     res_dict = {}
@@ -80,7 +83,7 @@ def median_from_json(path, filename, name):
             print('   |__Computing median graph of {} graphs'.format(len(graphs)))
             median, median_index = median_approximation(graphs, alpha=0.9, t=10E-10, max_iteration=np.inf)
             list__of_median.append(val[i][median_index])
-
+            explored_graph = explore_graph(dataset=dataset, target_class=key[1], graph=median, target_rule=(key[0], key[1], i))
             json_str = json.dumps({key: val[i][median_index]})
             with open("log/median_" + name + str(key[1]) + "_" + str(key[4]) + "_" + str(i) + ".json", 'w+') as out:
                 out.write(json_str)
@@ -89,6 +92,13 @@ def median_from_json(path, filename, name):
     json_str = json.dumps(res_dict)
     with open('median_' + name + '.json', 'w+') as out:
         out.write(json_str)
+
+
+    #save the explored graph
+    #TODO: create explored_graph_str
+    explored_graph_str = None
+    with open('explored_' + name + '.json', 'w') as out:
+        out.write(explored_graph_str)
 
 
 median_from_json("/home/elouan/epita/lrde/optimal_transport_for_gnn/src/json/", "aids_beam_support.json",

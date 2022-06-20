@@ -22,6 +22,7 @@ def explore_graph(dataset, target_class, graph, target_rule=0):
 
     Parameters
     ----------
+    dataset
     graph: nx graph
 
     Returns
