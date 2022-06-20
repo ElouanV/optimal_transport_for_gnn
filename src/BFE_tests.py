@@ -14,8 +14,14 @@ median_index_per_rule = [1343, 626, 978, 2058, 7757, 252, 2019, 169, 69, 75, 40,
 graphs = graphs[0] + graphs[1]
 median = graphs[median_index_per_rule[rule]].nx_graph
 show_graph(median)
-explainer, best_score, initial_score = explore_graph('aids', target_class=target[rule], graph=median, target_rule=rule)
 
+# TODO: ajouter ces infos dans le parser
+layer = None
+target_class = None
+rule_no = None
+
+explainer, best_score, initial_score = explore_graph('aids', target_class=target[rule], graph=median,
+                                                     target_rule=(layer, target_class, rule_no))
 
 show_graph(explainer)
 print("Best score: ", best_score, " Initial score: ", initial_score)

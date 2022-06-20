@@ -138,6 +138,8 @@ class OTBFEExplainer:
         initial_score = self.compute_score(graph_old)[0]
         while True:
             subgraphs = []
+            if graph.number_of_nodes() <= 1:
+                break
             nodes = nx.nodes(graph)
             scores = np.zeros(len(nodes))
             for i in range(len(nodes)):
