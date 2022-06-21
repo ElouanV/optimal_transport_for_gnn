@@ -56,9 +56,10 @@ def explore_graph(dataset, target_class, graph, target_rule=0):
 
     return graph
 
+
 class OTBFEExplainer:
     def __init__(self, model_to_explain, dataset, target_class, dataset_name, target_rule=None, target_metric="sum",
-               edge_probs=None):
+                 edge_probs=None):
         """
 
         Parameters
@@ -97,8 +98,8 @@ class OTBFEExplainer:
         self.rule_evaluator = RuleEvaluator(self.gnnNets, dataset_name, dataset, target_rule, target_metric,
                                             unlabeled=self.unlabeled, edge_probs=self.edge_probs)
 
-        self.best_score = [0]
-        self.step_score = [0]
+        self.best_score = 0
+        self.step_score = 0
         self.roll_out_graphs = list()
 
     def compute_feature_matrix(self, graph):
@@ -113,7 +114,7 @@ class OTBFEExplainer:
         return one_hot(index_tensor, len(self.atoms.keys()))
 
     def compute_score(self, graph, emb=None):
-        metric_value=  real_value = -1
+        metric_value = real_value = -1
         if not self.target_rule:
             X = self.compute_feature_matrix(graph).type(torch.float32)
             A = torch.from_numpy(nx.convert_matrix.to_numpy_array(graph))
@@ -136,6 +137,7 @@ class OTBFEExplainer:
 
         index = graph.number_of_nodes()
         initial_score = self.compute_score(graph_old)[0]
+        best_score = initial_score
         while True:
             subgraphs = []
             if graph.number_of_nodes() <= 1:
@@ -143,16 +145,16 @@ class OTBFEExplainer:
             nodes = nx.nodes(graph)
             scores = np.zeros(len(nodes))
             for i in range(len(nodes)):
-                subgraph_nodes = [x for j,x in enumerate(nodes) if j != i]
-                subgraphs.append(nx.subgraph(graph,subgraph_nodes))
+                subgraph_nodes = [x for j, x in enumerate(nodes) if j != i]
+                subgraphs.append(nx.subgraph(graph, subgraph_nodes))
                 score_g = self.compute_score(subgraphs[-1])
                 scores[i] = score_g[0]
 
             best_first = subgraphs[np.argmax(scores)]
-            best_score = np.max(scores)
-            if best_score > self.best_score:
+            best_first_score = np.max(scores)
+            if best_first_score > best_score:
                 graph = best_first
-                self.best_score = best_score
+                best_score = best_first_score
             else:
                 break
         return graph, best_score, initial_score

@@ -5,3 +5,7 @@
 *.png
 *.pkl
 *.txt.gz
+*.json
+*.txt
+*.csv
+src/ExplanationEvaluation/models/pretrained/

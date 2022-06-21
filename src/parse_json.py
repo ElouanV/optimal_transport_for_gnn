@@ -12,7 +12,7 @@ atoms_aids = {0: "C", 1: "O", 2: "N", 3: "Cl", 4: "F", 5: "S", 6: "Se", 7: "P", 
 atoms_mutag = {0: "C", 1: "O", 2: "Cl", 3: "H", 4: "N", 5: "F", 6: "Br", 7: "S", 8: "P", 9: "I", 10: "Na", 11: "K",
                12: "Li", 13: "Ca"}
 BBBPs = ["C", "N", "O", "S", "P", "BR", "B", "F", "CL", "I", "H", "NA", "CA"]
-features_dict = atoms_aids
+features_dict = atoms_mutag
 
 
 def add_edges(graph, edge_index):
@@ -48,7 +48,7 @@ def add_features_from_matrix(graph, features_matrix, dict_features=features_dict
         for j in range(features_matrix.shape[1]):  # for each feature
             if features_matrix[i][j] == 1:
                 try:
-                    graph.nodes[i]['label'] = BBBPs[j]
+                    graph.nodes[i]['label'] = features_dict[j]
                 except (KeyError):
                     print(i, " ")
 
@@ -112,7 +112,7 @@ def explore_from_json(path, filename, dataset_name):
     G.add_node(0)
     add_edges(G, edge_index)
     add_features_from_matrix(G, features_matrix)
-
+    show_graph(G)
     explored_graph, best_score, initial_score = explore_graph(dataset_name, target_class=target_class, graph=G,
                                    target_rule=(layer, target_class, rule_no))
     # comment this line of you don't want to show the graph
@@ -131,5 +131,5 @@ def explore_from_json(path, filename, dataset_name):
 '''median_from_json("/home/elouan/lrde/optimal_transport/optimal_transport_for_gnn/src/json/", "Bbbp_ex_support.json",
                  name="Bbbp_ex_support")'''
 
-explore_from_json("/home/elouan/lrde/optimal_transport/optimal_transport_for_gnn/src/log/",
-                  "median_Bbbp_ex_support0_0_0.json", "BBBP")
+explore_from_json("/home/elouan/lrde/optimal_transport/optimal_transport_for_gnn/src/json/",
+                  "median_mutag_21_0_0.json", "mutag")

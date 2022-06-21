@@ -41,7 +41,7 @@ def find_class(tokens):
     return int(cls)
 
 
-def build_graphs_from_file(filename, nb_class=2):
+def build_graphs_from_file(filename, nb_class=2, rule_info=False, feature_dic=atoms_aids):
     node_count = 0
     graphs = []
     for i in range(nb_class):
@@ -55,6 +55,11 @@ def build_graphs_from_file(filename, nb_class=2):
     nbgraphs_cls[0] = -1
     with open(filename) as f:
         title = f.readline()
+        r = title.split("=")[1].split(' \n')[0]
+        c = r.split(" ")
+        layer = int(c[0][2])
+        target_label = int(title.split(' ')[4].split(':')[1])
+        rule_no = int(title.split(' ')[3])
         g = Graph()
         for line in f:
             if line[0] == 't':
@@ -72,7 +77,7 @@ def build_graphs_from_file(filename, nb_class=2):
                 add_edges(g, line)
             elif line[0] == 'v':
                 nbnodes_cls[graph_class] += 1
-                add_nodes(g, line)
+                add_nodes(g, line, feature_dic)
             else:
                 raise Exception('Fail to load the graph from file ' + filename +
                                 ' please make sure that you respect the expected format')
@@ -81,6 +86,8 @@ def build_graphs_from_file(filename, nb_class=2):
 
     means = nbnodes_cls / nbgraphs_cls
     print("Mean size of graphs: " + str(means))
+    if rule_info:
+        return graphs, means, (layer, target_label, rule_no)
     return graphs, means
 
 
