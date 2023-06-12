@@ -1,7 +1,6 @@
 # Median Graph approximation
-In `src/` you will find a method to compute the approximation of the median graph of a collection of graph.
-As parameters you should provide a set of graph object from the class Graph (see `src/lib/graph.py`).
-In `/src/utils` you will find 
+Comuting median graph from a set a graph using optimal the Fused Gromov-Wasserstein distance defined in [1], and perform an exploration to find the median graph with the best score in an activation rule from a GNN
+We also implement an approximation of the median graph.
 
 ## Requirements
 * For FGW distance [FGW](https://github.com/tvayer/FGW)

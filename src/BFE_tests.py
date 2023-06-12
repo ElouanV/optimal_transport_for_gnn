@@ -22,7 +22,6 @@ graphs = graphs[0] + graphs[1]
 median = graphs[median_index_per_rule[rule]].nx_graph
 show_graph(median)
 
-# TODO: ajouter ces infos dans le parser
 
 '''explainer, best_score, initial_score = explore_graph('aids', target_class=target[rule], graph=median,
                                                      target_rule=(layer, target_class, rule_no))'''
